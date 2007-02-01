@@ -1,0 +1,14 @@
+# Random thoughts
+
+= Introduction =
+This is introduction material! Anyway only lacks 1) closing connections across the bridge [should that work] and 2) having two ports.  Then, AFAIK it should work. We can even host the PHP portion on planetlab1.byu.edu and just point people there.
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
+
+= Random thots =
+Maybe could do SSH tunnel for the same effect?
