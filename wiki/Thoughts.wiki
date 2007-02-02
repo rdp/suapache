@@ -1,14 +1,13 @@
 # Random thoughts
 
 = Introduction =
-This is introduction material! Anyway only lacks 1) closing connections across the bridge [should that work] and 2) having two ports.  Then, AFAIK it should work. We can even host the PHP portion on planetlab1.byu.edu and just point people there.
-
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+This is introduction material! Anyway code lacks 1) closing connections across the bridge  and 2) opening two ports.  Then, AFAIK it should work for limited use, especially with PHP. We can even host the PHP portion on planetlab1.byu.edu and just point there for setup, and it should just work for open communication on a few ports if you so desire it.
 
 = Random thots =
 Maybe could do SSH tunnel for the same effect?
+
+= Wiki Coding How-to =
+
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
