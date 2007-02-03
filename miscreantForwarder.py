@@ -68,9 +68,9 @@ try:
                 mySocketToSelf = []
          else:
             print "weird"
-         print "something!\n"
+         print "T"
      else:
-         print "uh...nothing in or out this epoch\n"
+         print "z"
      
 except KeyboardInterrupt:
   print "shutting down\n"
