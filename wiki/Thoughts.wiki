@@ -6,6 +6,8 @@ This is introduction material! Anyway code lacks 1) closing connections across t
 = Random thots =
 Maybe could do SSH tunnel for the same effect?
 
+Username, password using diffie-hellman or "weak passwords" from the host--nice. Not yet necessary tell them to only use public things that are secure.
+
 = Wiki Coding How-to =
 
   * Text in *bold* or _italic_
