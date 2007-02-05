@@ -17,7 +17,7 @@ Could do username, password using diffie-hellman or "weak passwords" from the ho
 Also could do: HTTP request at beginning, to fake out filters.
 HTTP proxy guy.
 
-
+Round Robin Fair Queue with a cap would be nice.
 
 = Wiki Coding How-to =
 
