@@ -6,7 +6,17 @@ This is introduction material! Anyway code lacks 1) closing connections across t
 = Random thots =
 Maybe could do SSH tunnel for the same effect?
 
-Username, password using diffie-hellman or "weak passwords" from the host--nice. Not yet necessary tell them to only use public things that are secure.
+
+= Security =
+Enforce a EULA.
+Tell them to only use a secure program that they trust.
+It only opens (as of now) a few ports, so that's nice for security. It's punching a small hole through the firewalls :)
+
+Could do username, password using diffie-hellman or "weak passwords" from the host--nice. Not yet necessary tell them to only use public things that are secure. Could be 'allow connection only once' or what not, to be better security.
+
+Also could do: HTTP request at beginning, to fake out filters.
+HTTP proxy guy.
+
 
 = Wiki Coding How-to =
 
