@@ -19,6 +19,8 @@ HTTP proxy guy.
 
 Round Robin Fair Queue with a cap would be nice.
 
+Using this system will not really 'hide' you from anyone, because the DNS queries (or web page login) must originate from you in order for it to work, so it is trivially trackable. This does not provide anonymity.
+
 = Wiki Coding How-to =
 
   * Text in *bold* or _italic_
