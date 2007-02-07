@@ -1,4 +1,4 @@
-# Random thoughts
+# Random thoughts One Port to Rule Them All
 
 = Introduction =
 This is introduction material! Anyway code lacks 1) closing connections across the bridge  and 2) opening two ports.  Then, AFAIK it should work for limited use, especially with PHP. We can even host the PHP portion on planetlab1.byu.edu and just point there for setup, and it should just work for open communication on a few ports if you so desire it.
@@ -11,6 +11,8 @@ We could do the HTML 'map me a port' AND the DNS 'map me a port' where HTML migh
 Could use tracepath, queries
 
 Load Balancing.
+A good host that's close, but the host should be between the two clients. There always is a best host. Find it.
+
 
 Smarter miscreant client (straight through TCP). One that contributes, even. Very low prio. 
 
@@ -23,12 +25,26 @@ TODO: Use OpenDHT for available proxies.
 Research ways to open more ports:
   miscreants tell you which ports they want open (one to one mapping).
   or their (normal) 3114 -> local 80
+  or request a port range,
+  or 10 different ones on every proxy
+  or myname800.us.org -> some proxy that is running it on 800 and can work with ya (yes).
+
+maybe a distinct port (random) for a miscreant if they want to ensure they are good (open a new one on the proxy). Random or requested.
+
+Research into problems with communication.
+
+Login system: use the sweet logins via web (javascript?) or the smarter client they have to install--one or the other (smart clients generally frowned upon).
+
+Maybe an azureus plugin to just use this other name (nice). Low prio. Like way low.
+
 
 
 Warn about security!
 
 
+DNS: if from dns then connect similar, theoretically other queries near would be from same (in theory).  So a new query from the same dns server should go to a new proxy (hopefully still a good proxy) to avoid conflicts--I think.  Re-requests to the same place can/should safely go to the same place (for us for now just re-send it 'next request goes to here').
 
+Passwords: 
 
 
 
