@@ -32,21 +32,35 @@ Research ways to open more ports:
 maybe a distinct port (random) for a miscreant if they want to ensure they are good (open a new one on the proxy). Random or requested.
 
 Research into problems with communication.
+  round robin to overcome it?
+  distinct alients, miscreants (could be a conflict if it were used from same proxy, with only a single DNS lookup, two NAT'ed aliens within the same "room" that go to two different miscreants.
 
 Login system: use the sweet logins via web (javascript?) or the smarter client they have to install--one or the other (smart clients generally frowned upon).
 
 Maybe an azureus plugin to just use this other name (nice). Low prio. Like way low.
 
+Tight would be using a java applet to somehow lookup the 'real' IP of the host (assuming they are doing an HTTP get), or also setting an extra cookie to transactions or what not, so that we know for sure which host they are. Or if they don't have that cookie requiring them to login or what not.
+Maybe requiring logins for everyone to use it (ever) would be nice. Yeah probably :)
+
+Could do HTTP request via an HTTP proxy/tunnel, too, using POST (very low priority don't do).
 
 
-Warn about security!
+Warn about security! Give an EULA.
 
 
 DNS: if from dns then connect similar, theoretically other queries near would be from same (in theory).  So a new query from the same dns server should go to a new proxy (hopefully still a good proxy) to avoid conflicts--I think.  Re-requests to the same place can/should safely go to the same place (for us for now just re-send it 'next request goes to here').
 
-Passwords: 
+Future project: streaming from one source out (oooh).  If that were actually really possible--wow. Wow.
+
+Limit bandwidth among ALL per proxy.
+
+Super tight would be when one proxy gets overloaded or maybe its quota is almost reached, it would possible...transfer connections to someone else. That would be tight. I've almost never heard of anything like it, except routers.
 
 
+
+= DNS =
+We need to set a low TTL. Like negligible.
+We may be able to use godaddy and just use subdomaings (if godaddy will forward queries on to us). If not then we need to possibly "get a friend" that happens to have their own ns servers and have them forward everything about it on to us. Or some service that will do it for us (should exist).
 
 = Security =
 Enforce a EULA.
