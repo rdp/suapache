@@ -6,13 +6,15 @@ Code lacks working with PHP, setup, leave running, test. Could be fascinating :)
 Then, AFAIK it should work for limited use, especially with PHP. We can even host the PHP portion on planetlab1.byu.edu and just point there for setup, and it should just work for open communication on a few ports if you so desire it.
 
 v 01:
-multiplexing, round robin among good hosts.
+multiplexing, round robin among good hosts with one central
+
+v 02:
+
+Moderate protection speed-wise. At least fair queueing.
 
 = Random thots =
 
-Some random thoughts for future:
-
-Might be nice to have "our system" interface with jxta, or even do it. I don't know what that would mean exactly. Hmm. It seems to already do so.
+Might be nice to have "our system" interface with jxta, or even contribute to it. I don't know what that would mean exactly. Hmm. We seem to already do what they do.
 
 We could do the HTML 'map me a port' AND the DNS 'map me a port' where HTML might be more accurate, but both would seem to work, and HTML is less automatic, but hey.
 
@@ -21,15 +23,17 @@ Could use tracepath to supplement the IP mask.
 Load Balancing.
 A good host that's close, but the host should be between the two clients. There always is a best host. Find it.
 
-Smarter miscreant client (straight through TCP). One that contributes, even. Very low prio. 
+Smarter miscreant client (straight through TCP). Or one that contributes, even. Very low prio. 
 
-Could research to see if this has been done (I think it has) before.
+Could research to see if this has been done (I think it has) before. Was it good? Successful?
 SSH tunnel? So this idea isn't a bad one...
 Could do an SSL tunnel...
 
 Could write a client for the outside hosts so they don't use the proxies/dynamic dns [then it's really similar to jxta java p2p]. Then STUN would be faster. Low Prio. 3rd party.
 
-TODO: Use OpenDHT for available proxies.
+TODO: Use OpenDHT for available proxies. This could be nice for proxy selection. Could use OpenDHT for the lookups, too. Hmm. Then they choose their own proxy, register themselves on OpenDHT. I like it already. Then we can use OpenDHT for name resolution, too, perhaps--like arbitrary. This yes :)
+
+research allowing spurts but then slowing down that little stream :)
 
 Research ways to open more ports:
   miscreants tell you which ports they want open (one to one mapping).
@@ -40,7 +44,7 @@ Research ways to open more ports:
 
 maybe a distinct port (random) for a miscreant if they want to ensure they are good (open a new one on the proxy). Random or requested.
 
-Research into problems with communication.
+Research into potential problems
   round robin to overcome it?
   distinct alients, miscreants (could be a conflict if it were used from same proxy, with only a single DNS lookup, two NAT'ed aliens within the same "room" that go to two different miscreants.
 
@@ -54,24 +58,25 @@ Maybe requiring logins for everyone to use it (ever) would be nice. Yeah probabl
 Could do HTTP request via an HTTP proxy/tunnel, too, using POST (very low priority don't do). 3rd party
 
 
-Warn about security! Secure progs only! Or make them explicitly enable certain domains (theirnameXXX.us.org) so that they know what is coming in and going out. Give an EULA. Could also let them choose who to let in (like an IP mask), or require password authentication back to the original host, before allowing it to connect (through one port at least :)
-
-
-DNS: if from dns then connect similar, theoretically other queries near would be from same (in theory).  So a new query from the same dns server should go to a new proxy (hopefully still a good proxy) to avoid conflicts--I think.  Re-requests to the same place can/should safely go to the same place (for us for now just re-send it 'next request goes to here').
-
 DNS is connect similar. Could definitely be ambiguous. HTTP is connect straight.
 
 Future project: streaming from one source out (oooh).  If that were actually really possible--wow. Wow.
 
-Limit bandwidth among ALL per proxy.
+Limit bandwidth among ALL per proxy. Limit bandwidth among connection, or, if strict, limit bandwidth among all within the user's NAT (true IP)--that would actually really limit it--maybe we can use the round robin to get around this. 
+Round Robin Fair Queue with a cap would be nice.
 
 Super tight would be when one proxy gets overloaded or maybe its quota is almost reached, it would possible...transfer connections to someone else. That would be tight. I've almost never heard of anything like it, except routers.
 
 Could set it up so that it starts a program when a connection occurs, then kills it after (like apache). Hmm. like inetd :) 3rd party.
+Also could do: HTTP request at beginning, to fake out filters.
+HTTP proxy guy.
+
 
 = DNS =
 We need to set a low TTL. Like negligible.
 We may be able to use godaddy and just use subdomaings (if godaddy will forward queries on to us). If not then we need to possibly "get a friend" that happens to have their own ns servers and have them forward everything about it on to us. Or some service that will do it for us (should exist).
+
+DNS: if from dns then connect similar, theoretically other queries near would be from same (in theory).  So a new query from the same dns server should go to a new proxy (hopefully still a good proxy) to avoid conflicts--I think.  Re-requests to the same place can/should safely go to the same place (for us for now just re-send it 'next request goes to here').
 
 = Security =
 Enforce a EULA.
@@ -80,15 +85,6 @@ It only opens (as of now) a few ports, so that's nice for security. It's punchin
 
 Could do username, password using diffie-hellman or "weak passwords" from the host--nice. Not yet necessary tell them to only use public things that are secure. Could be 'allow connection only once' or what not, to be better security.
 
-Also could do: HTTP request at beginning, to fake out filters.
-HTTP proxy guy.
-
-Round Robin Fair Queue with a cap would be nice.
-
 Using this system will not really 'hide' you from anyone, because the DNS queries (or web page login) must originate from you in order for it to work, so it is trivially trackable. This does not provide anonymity.
 
-= Wiki Coding How-to =
-
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+Warn about security! Secure progs only! Or make them explicitly enable certain domains (theirnameXXX.us.org) so that they know what is coming in and going out. Give an EULA. Could also let them choose who to let in (like an IP mask), or require password authentication back to the original host, before allowing it to connect (through one port at least :)
