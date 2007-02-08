@@ -1,24 +1,28 @@
 # Random thoughts One Port to Rule Them All
 
 = Introduction =
-This is introduction material! Anyway code lacks 1) closing connections across the bridge  and 2) opening two ports.  Then, AFAIK it should work for limited use, especially with PHP. We can even host the PHP portion on planetlab1.byu.edu and just point there for setup, and it should just work for open communication on a few ports if you so desire it.
+v 00: 
+Code lacks working with PHP, setup, leave running, test. Could be fascinating :)
+Then, AFAIK it should work for limited use, especially with PHP. We can even host the PHP portion on planetlab1.byu.edu and just point there for setup, and it should just work for open communication on a few ports if you so desire it.
+
+v 01:
+multiplexing, round robin among good hosts.
 
 = Random thots =
-Maybe could do SSH tunnel for the same effect?
 
 We could do the HTML 'map me a port' AND the DNS 'map me a port' where HTML might be more accurate, but both would seem to work, and HTML is less automatic, but hey.
 
-Could use tracepath, queries
+Could use tracepath to supplement the IP mask.
 
 Load Balancing.
 A good host that's close, but the host should be between the two clients. There always is a best host. Find it.
 
-
 Smarter miscreant client (straight through TCP). One that contributes, even. Very low prio. 
 
 Could research to see if this has been done (I think it has) before.
+SSH tunnel? So this idea isn't a bad one...
 
-Could write a client for the outside hosts so they don't use the proxies/dynamic dns [then it's really close to jxta java p2p]. Then STUN would be faster. Low Prio.
+Could write a client for the outside hosts so they don't use the proxies/dynamic dns [then it's really similar to jxta java p2p]. Then STUN would be faster. Low Prio. 3rd party.
 
 TODO: Use OpenDHT for available proxies.
 
@@ -37,12 +41,12 @@ Research into problems with communication.
 
 Login system: use the sweet logins via web (javascript?) or the smarter client they have to install--one or the other (smart clients generally frowned upon).
 
-Maybe an azureus plugin to just use this other name (nice). Low prio. Like way low.
+Maybe an azureus plugin to just use this other name (nice). Low prio. Like way low. 3rd party.
 
 Tight would be using a java applet to somehow lookup the 'real' IP of the host (assuming they are doing an HTTP get), or also setting an extra cookie to transactions or what not, so that we know for sure which host they are. Or if they don't have that cookie requiring them to login or what not.
 Maybe requiring logins for everyone to use it (ever) would be nice. Yeah probably :)
 
-Could do HTTP request via an HTTP proxy/tunnel, too, using POST (very low priority don't do).
+Could do HTTP request via an HTTP proxy/tunnel, too, using POST (very low priority don't do). 3rd party
 
 
 Warn about security! Secure progs only! Or make them explicitly enable certain domains (theirnameXXX.us.org) so that they know what is coming in and going out. Give an EULA. Could also let them choose who to let in (like an IP mask), or require password authentication back to the original host, before allowing it to connect (through one port at least :)
@@ -58,7 +62,7 @@ Limit bandwidth among ALL per proxy.
 
 Super tight would be when one proxy gets overloaded or maybe its quota is almost reached, it would possible...transfer connections to someone else. That would be tight. I've almost never heard of anything like it, except routers.
 
-
+Could set it up so that it starts a program when a connection occurs, then kills it after (like apache). Hmm. like inetd :) 3rd party.
 
 = DNS =
 We need to set a low TTL. Like negligible.
