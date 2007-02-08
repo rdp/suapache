@@ -1,4 +1,4 @@
-# Random thoughts One Port to Rule Them All
+# Summary Random thoughts One Port to Rule Them All
 
 = Introduction =
 v 00: 
@@ -13,6 +13,8 @@ v 02:
 Moderate protection speed-wise. At least fair queueing.
 
 = Random thots =
+
+What about injecting raw packets onto the wire locally, that "say" they are from this other host, then (I guess) listen on the wire for packets 'to' this IP. Don't know if this is possible, but if it were would this be a benefit?
 
 Might be nice to have "our system" interface with jxta, or even contribute to it. I don't know what that would mean exactly. Hmm. We seem to already do what they do.
 
