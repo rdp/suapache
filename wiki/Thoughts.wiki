@@ -25,6 +25,7 @@ Smarter miscreant client (straight through TCP). One that contributes, even. Ver
 
 Could research to see if this has been done (I think it has) before.
 SSH tunnel? So this idea isn't a bad one...
+Could do an SSL tunnel...
 
 Could write a client for the outside hosts so they don't use the proxies/dynamic dns [then it's really similar to jxta java p2p]. Then STUN would be faster. Low Prio. 3rd party.
 
