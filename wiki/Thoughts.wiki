@@ -1,4 +1,4 @@
-#Summary Random thoughts One Port to Rule Them All
+#summary Random thoughts One Port to Rule Them All
 
 = Introduction =
 v 00: 
