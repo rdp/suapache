@@ -10,6 +10,10 @@ multiplexing, round robin among good hosts.
 
 = Random thots =
 
+Some random thoughts for future:
+
+Might be nice to have "our system" interface with jxta, or even do it. I don't know what that would mean exactly. Hmm. It seems to already do so.
+
 We could do the HTML 'map me a port' AND the DNS 'map me a port' where HTML might be more accurate, but both would seem to work, and HTML is less automatic, but hey.
 
 Could use tracepath to supplement the IP mask.
