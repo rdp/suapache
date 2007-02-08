@@ -45,10 +45,12 @@ Maybe requiring logins for everyone to use it (ever) would be nice. Yeah probabl
 Could do HTTP request via an HTTP proxy/tunnel, too, using POST (very low priority don't do).
 
 
-Warn about security! Give an EULA.
+Warn about security! Secure progs only! Or make them explicitly enable certain domains (theirnameXXX.us.org) so that they know what is coming in and going out. Give an EULA. Could also let them choose who to let in (like an IP mask), or require password authentication back to the original host, before allowing it to connect (through one port at least :)
 
 
 DNS: if from dns then connect similar, theoretically other queries near would be from same (in theory).  So a new query from the same dns server should go to a new proxy (hopefully still a good proxy) to avoid conflicts--I think.  Re-requests to the same place can/should safely go to the same place (for us for now just re-send it 'next request goes to here').
+
+DNS is connect similar. Could definitely be ambiguous. HTTP is connect straight.
 
 Future project: streaming from one source out (oooh).  If that were actually really possible--wow. Wow.
 
