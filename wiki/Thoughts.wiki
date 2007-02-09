@@ -93,3 +93,7 @@ Could do username, password using diffie-hellman or "weak passwords" from the ho
 Using this system will not really 'hide' you from anyone, because the DNS queries (or web page login) must originate from you in order for it to work, so it is trivially trackable. This does not provide anonymity.
 
 Warn about security! Secure progs only! Or make them explicitly enable certain domains (theirnameXXX.us.org) so that they know what is coming in and going out. Give an EULA. Could also let them choose who to let in (like an IP mask), or require password authentication back to the original host, before allowing it to connect (through one port at least :)
+
+Maybe for security for now...one proxy (only) per miscreant. Sounds like a good plan to me. This would simplify the load balancing.
+
+With balancing maybe could have it 'stop' all tthe connections when it reaches the limit, too, forcing them to a new host. That would make sense. Just use up their daily quota per day, and then just really cap down on the bandwidth allowed.
