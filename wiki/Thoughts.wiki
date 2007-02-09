@@ -20,6 +20,8 @@ Might be nice to have "our system" interface with jxta, or even contribute to it
 
 We could do the HTML 'map me a port' AND the DNS 'map me a port' where HTML might be more accurate, but both would seem to work, and HTML is less automatic, but hey.
 
+Nice might be 'instructions' to the miscreant server to 'establish another connection with so and so' type of thing.
+
 Could use tracepath to supplement the IP mask.
 
 Load Balancing.
