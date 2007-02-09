@@ -75,6 +75,7 @@ Could set it up so that it starts a program when a connection occurs, then kills
 Also could do: HTTP request at beginning, to fake out filters.
 HTTP proxy guy.
 
+Eula: "you need administrator approval"
 
 = DNS =
 We need to set a low TTL. Like negligible.
