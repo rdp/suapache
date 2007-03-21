@@ -1,7 +1,6 @@
 on true proxy run proxyServer.py
 on miscreant run miscreantForwarded.py, apache.py on the port advertised
 
-setup the mapping--uh...this should be done from the client before
-wgetting...or just use the last alien that came in...
-on alien run wget proxyServer:goodPort and it should connect you right
-through
+run echoAlien.py on host to setup mapping, then wget might work..
+
+on alien after mapping  wget proxyServer:goodPort and it should connect you right through
