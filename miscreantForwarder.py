@@ -5,7 +5,7 @@ import sys
 
 mySocketOut =  socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
 
-mySocketOut.connect(('localhost', 8000))
+mySocketOut.connect(('ilab4', 8000))
 mySocketOut.sendall('MiscreantNamerdp') # that's it -- as long as it comes in the first packet we're good TODO
 
 
