@@ -15,11 +15,12 @@ class sharedList:
         def __init__(self):
                 self.connectionList = {}
                 self.miscreants = {} # dictionary of threaded, running objects
-                self.lastCited = []
+                self.lastCited = "fake starting last cited"
 
         def setupNextIncoming(self, fromIp, toHost):
                 self.connectionList[fromIp] = toHost
                 self.lastCited = toHost
+                print "setup lastCited as ", toHost
 
         def addMiscreant(self, miscreantName, miscreantThatIsRunning):
                 self.miscreants[miscreantName] = miscreantThatIsRunning
@@ -33,6 +34,7 @@ class sharedList:
                 else:
                     print "uh...we don't know how to map this! Guessing %s" % self.lastCited
                     miscreantName = self.lastCited
+                    print "type is", self.miscreants.__class__
                 if self.miscreants.has_key(miscreantName):
                     print "and connection made!\n"
                     self.miscreants[miscreantName].addAlien(alienConn)
@@ -106,7 +108,7 @@ class miscreant( threading.Thread ):
                              print "weirderr\n"
 
                  else:
-                     print "d"
+                     #print "d"
                      time.sleep(3)
              except socket.error, e:
                 print e
@@ -133,6 +135,7 @@ class miscreantAlienListener (threading.Thread):
         def run(self):
                 HOST = ''                # Symbolic name meaning the local host
                 PORT = 8000              # Arbitrary non-privileged port
+# s is the main socket from which miscreants will attach in
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.bind((HOST, PORT))
                 s.listen(1)
@@ -141,7 +144,7 @@ class miscreantAlienListener (threading.Thread):
                 alienPort = self.alienBindPort
                 sAlien.bind((HOST, alienPort))
                 sAlien.listen(1)
-                print "alien listening on port", alienPort
+                print "alien will listen on port", alienPort
                 print "miscreant listening on ", PORT
                 
                 while keepGoing:
@@ -168,6 +171,7 @@ class miscreantAlienListener (threading.Thread):
                                 print "throwing away connection"
                 sAlien.close() # clean-up
                 s.close()
+                print "we closed the main %d port!" % (PORT)
                 
 
 if len(sys.argv) >= 2:
