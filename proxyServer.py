@@ -15,12 +15,11 @@ class sharedList:
         def __init__(self):
                 self.connectionList = {}
                 self.miscreants = {} # dictionary of threaded, running objects
-                self.lastCited = "fake starting last cited"
+                self.lastCited = "fake starting last cited--if you see this it may mean that you haven't set up the mapping from the alien side yet"
 
         def setupNextIncoming(self, fromIp, toHost):
                 self.connectionList[fromIp] = toHost
                 self.lastCited = toHost
-                print "setup lastCited as ", toHost
 
         def addMiscreant(self, miscreantName, miscreantThatIsRunning):
                 self.miscreants[miscreantName] = miscreantThatIsRunning
