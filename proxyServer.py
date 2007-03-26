@@ -204,7 +204,7 @@ try:
         print "I think that %s should next (and subsequently) go to %s\n" % (hostIp, data)
         if hostIp != "" and data != "":
                 globalShared.setupNextIncoming(hostIp, data)
-                conn.sendall("success in mapping!\n")
+                conn.sendall("success in mapping--%s on my port %d will go to %s!\n" % (hostIp, alienListenerBindPort, data))
         else:
                 conn.sendall("FAIL!\n")
 
