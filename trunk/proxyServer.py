@@ -5,6 +5,7 @@ import threading
 import select
 import time
 import sys
+import re
 
 keepGoing = True
 
@@ -25,20 +26,25 @@ class sharedList:
                 self.miscreants[miscreantName] = miscreantThatIsRunning
 
         def addAlien(self, alienConn, alienDetails):
-                print "alien details are", alienDetails
+                print "incoming alien details (we are adding this one) are", alienDetails
                 alienHost = alienDetails[0]
-                if self.connectionList.has_key(alienHost):
+		alienHostBeginningThree = re.match("\d+\.\d+\.\d+", alienDetails[0]).group() # todo make this into a lib, as it is shared among two files
+
+                if self.connectionList.has_key(alienHost): 
                     miscreantName = self.connectionList[alienHost]
-                    print "Bada boom appropriate connection alien to miscreant\n"
-                else:
-                    print "uh...we don't know how to map this! Guessing %s" % self.lastCited
-                    miscreantName = self.lastCited
-                    print "type is", self.miscreants.__class__
+                    print "Bada boom appropriate connection alien with full IP match!"% (alienHost, miscreantName)
+                elif self.connectionList.has_key(alienHostBeginningThree):
+		   miscreantName = self.connectionList[alienHostBeginningThree]
+		   print "made a connection using first 3 of incoming ip..."
+		else:
+                   print "uh...we don't know how to map this! Guessing latest request...%s" % self.lastCited
+                   miscreantName = self.lastCited
+	
                 if self.miscreants.has_key(miscreantName):
-                    print "and connection made!\n"
+                    print "mapping to miscreant %s...success.\n" % (miscreantName)
                     self.miscreants[miscreantName].addAlien(alienConn)
                 else:
-                    errorMessage =  "no miscrent found with that name, though--giving up!\n"
+                    errorMessage =  "no miscreant found with that name, though--giving up!!!!\n"
                     print errorMessage
                     alienConn.send(errorMessage)
                     alienConn.close()
@@ -187,6 +193,7 @@ HOST = ''                 # Symbolic name meaning the local host
 PORT = 10005              # Arbitrary non-privileged port
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
+print "bound on port %d as the incoming alient o miscreant mapper listener :)\n" % (PORT)
 s.listen(1)
 try:
   while True:
