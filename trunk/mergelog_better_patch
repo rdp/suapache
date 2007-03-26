@@ -1,0 +1,120 @@
+Only in mergelog-4.5_patched: config.cache
+Only in mergelog-4.5_patched: config.log
+Only in mergelog-4.5_patched: config.status
+Only in mergelog-4.5_patched: Makefile
+Only in mergelog-4.5_patched/man: Makefile
+Only in mergelog-4.5_patched: offfending_output.txt
+Only in mergelog-4.5_patched/src: 2007_02_27.log
+Only in mergelog-4.5_patched/src: 2007_02_27.log.gz.piped.gz
+Only in mergelog-4.5_patched/src: .deps
+Only in mergelog-4.5_patched/src: latest.txt
+Only in mergelog-4.5_patched/src: Makefile
+Only in mergelog-4.5_patched/src: mergelog
+diff -r mergelog-4.5/src/mergelog.c mergelog-4.5_patched/src/mergelog.c
+38c38
+< #define SCAN_OFFSET 9
+---
+> #define SCAN_OFFSET 7 // was 9 -- which would 'miss' small hostnames like 3-letter ones and treat them like errors
+135c135
+<     open log files
+---
+>     OPen log files
+226c226
+<     if (mygets(log_buffer[i],BUFFER_SIZE,log_file[i],i) != NULL ) {
+---
+>     if (mygets(log_buffer[i],BUFFER_SIZE,log_file[i],i) != NULL ) { // this could be fgets or what not...
+258c258
+< 	 fprintf(stderr,"abort due to a problem with %s:\n%s\n",argv[i+1],log_buffer[i]);
+---
+> 	 fprintf(stderr,"abort due to a problem with %s reading the first line:\n%s\n",argv[i+1],log_buffer[i]);
+315c315,316
+<   memcpy(ref_date_buf,trans_year[date->tm_year],4);
+---
+>   memcpy(ref_date_buf,trans_year[date->tm_year],4); // copy in the year
+>   char decadeChar = trans_year[date->tm_year][2];
+324c325
+<     start to compute since this date
+---
+>     start to compute since this date, starting one second before the first date in any file...
+332c333,334
+<     start++;
+---
+>     start++; // start is a date struct, so this means "one more second forward"
+> // now we will appropriately copy new values to our 'comparator string' depending on what has changed with our comparison "counter" value, here
+334c336
+<       date->tm_sec++;
+---
+>       date->tm_sec++; // add a second
+359c361
+<       scan this date for each log file
+---
+>       scan this date for each log file's next item
+364c366
+< 	write the log lines until the reference date is older than the log line
+---
+> 	write the log lines until the reference date (counter date) is older than the log line per file.
+373c375,377
+< 	for(j=0;(j<DATE_SIZE)&&(*(ref_date_buf+j)==*(tmp_date_buf[i]+j));j++);
+---
+> // what is happening is that we are getting some corruption within it...like 2086 for a year--baaad idea. very bad. very, very bad.#	printf("comparing date of the counter, that will outputs [%s] with [%s] in file\n", ref_date_buf, tmp_date_buf[i]);
+> 
+> 	for(j=0;(j<DATE_SIZE)&&(*(ref_date_buf+j)==*(tmp_date_buf[i]+j));j++); // i is the file number you're on
+380c384
+< 	write(1,log_buffer[i],(size_t)((char *)memchr(log_buffer[i],0,BUFFER_SIZE)-log_buffer[i]));
+---
+> 	write(1,log_buffer[i],(size_t)((char *)memchr(log_buffer[i],0,BUFFER_SIZE)-log_buffer[i])); // the memchr is find character, and the zero is "find the null character"
+407c411,412
+< 	    prepare the new pointer for the date test
+---
+> 	    prepare the new pointer for the date test -- I guess this is the case that we wrote something, above, from the file...
+> TODO could double check that we don't redo this every time--I doubt we do.
+408a414
+> 
+413c419
+< 	      convert the log line month if necessary
+---
+> 	      convert the log line month if necessary (i.e. if you've reached a new month)
+417c423,430
+< 	      memcpy(tmp_date_buf[i]+4,log_month[i],2);
+---
+> 		char newDecadeChar = log_date[10];
+> 		//printf( "I think the new decadechar1 is %c decades1\n", newDecadeChar);
+> // NOTE with errors it will just preserve the previous day's date, and use that, so it will still spit it out. Ingenious, if I can spell that, isn't it?
+> 		if(newDecadeChar != decadeChar)
+> 		{
+> 		     fprintf(stderr,"problem with %s: different decades aren't allowed to compensate for some gross log errors BL...(1)\n%s\ncontinuing...\n",argv[i+1],log_buffer[i]);
+> }else
+> {
+418a432
+> 	      memcpy(tmp_date_buf[i]+4,log_month[i],2);
+423a438
+> }
+426c441
+< 	      for (j=0;((j<12)&&(memcmp(months+2*j,log_date+5,2) != 0));j++);
+---
+> 	      for (j=0;((j<12)&&(memcmp(months+2*j,log_date+5,2) != 0));j++); // compare the month with those on record...
+428,429c443,452
+< 		fprintf(stderr,"problem with %s:\n%s\ncontinuing...\n",argv[i+1],log_buffer[i]);
+< 	      } else {
+---
+> 		fprintf(stderr,"problem with %s: scanning for a month after the first [...\n%s\ncontinuing...\n",argv[i+1],log_buffer[i]);
+> 	      } else  
+> 	      {
+> 		char newDecadeChar = log_date[10];
+> //		printf( "I think the new decadechar2 is %c decades2\n", newDecadeChar); # todo double check this--like I will ever do it... :)
+> 		if(newDecadeChar != decadeChar)
+> 		{
+> 		     fprintf(stderr,"problem with %s: different decades2 aren't allowed to compensate for some gross log errors BL...(2)\n%s\ncontinuing...\n",argv[i+1],log_buffer[i]);
+> }else
+> {
+438a462
+> }
+442c466
+< 	    fprintf(stderr,"problem with %s:\n%s\ncontinuing...\n",argv[i+1],log_buffer[i]);
+---
+> 	    fprintf(stderr,"problem with %s: \n%s\ncontinuing...\n",argv[i+1],log_buffer[i]);
+Only in mergelog-4.5_patched/src: offending_smaller.txt
+Only in mergelog-4.5_patched/src: offending.txt
+Only in mergelog-4.5_patched/src: offfending_output.txt
+Only in mergelog-4.5_patched/src: small.txt
+Only in mergelog-4.5_patched/src: zmergelog
