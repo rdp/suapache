@@ -5,16 +5,20 @@ import sys
 
 mySocketOut =  socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
 
-mySocketOut.connect(('ilab4', 8000))
-mySocketOut.sendall('MiscreantNamerdp') # that's it -- as long as it comes in the first packet we're good TODO
+server = "planetlab1.byu.edu"
+myUniqueMiscreantName = "rdp_planet_lab_1"
+print "attempting to connect to proxyserver %s as miscreant %s " % (server, myUniqueMiscreantName)
 
+mySocketOut.connect((server, 8000))
+mySocketOut.sendall(myUniqueMiscreantName) # that's it -- as long as it comes in the first packet we're good TODO this is a kinda bad way, though...
 
 mySocketToSelf = [] #socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
 
 socketToSendToLocalHost = 3221
 if len(sys.argv) > 1:
     socketToSendToLocalHost = int(sys.argv[1])
-print "will establish incoming [through 8000 from proxy] to ", socketToSendToLocalHost
+
+print "will establish incoming [through my connection on 8000 with proxy] to ", socketToSendToLocalHost
 
 try:
  while True:
