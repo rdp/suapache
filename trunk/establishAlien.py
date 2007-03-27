@@ -5,17 +5,30 @@ import re # regular expressions for IP address parsing
 
 # intro server
 def match(alienIP, host):
-  print "will now attempt mapping %s to %s!\n" % (alienIP, host)
   mySocket =  socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
   mySocket.connect( ('localhost', 10005))
   mySocket.sendall ( 'From:%sto:%s' % (alienIP, host))
-  print "got back from mapping request:", mySocket.recv ( 1024 )
+  returnString = ""  
+  returnString += "got back from mapping request:" + mySocket.recv ( 1024 )
   mySocket.close()
 
-  print "done mapping %s to %s!\n" % (alienIP, host)
+  print "done mapping %s to %s! [received %s]\n" % (alienIP, host, returnString)
+  ipOut = ""
+  portOut = ""
+  pattern = re.compile(".* (\d+\.\d+\.\d+\.\d+):(\d+) => \w+.*", re.DOTALL)
+  a =  re.match(pattern, returnString)
+  if a:
+    ipOut = a.groups()[0]
+    portOut = a.groups()[1]
+    print "internal: in match got ip %s port %s\n" % (ipOut, portOut)
+  else:
+	print "did not match with %s\n" % returnString
+ 
+  return returnString, ipOut, portOut
 
-match("127.0.0.1", "MiscreantNamerdpCanned")
-match("127.0.0", "MiscreantNamerdpCanned")
+#testing code:
+#match("127.0.0.1", "MiscreantNamerdpCanned")
+#match("127.0.0", "MiscreantNamerdpCanned")
 
 # Basic web server lifted from a web page...
 import socket
@@ -39,23 +52,35 @@ while 1:
  firstThreePartsOfIP = re.match("\d+\.\d+\.\d+", ipAddressOfIncomingAlien).group()
 
 # Protocol exchange - read request
+ connectionReturnString = ""
 
  while 1:
   line = cfile.readline().strip()
-  print line
-  if re.match(".*mapMeTo=(\w*)", line):
- 	miscreantDesired = re.match(".*mapMeTo=(\w*)", line).groups()[0]
-	match(ipAddressOfIncomingAlien,miscreantDesired)
-	match(firstThreePartsOfIP, miscreantDesired)
+#  print line
+  miscreantName = re.match(".*mapMeTo=(\w*)", line)
+  if not miscreantName:
+	miscreantName =  re.match(".*mapToMe=(\w*)", line)
+  if miscreantName:
+ 	miscreantDesired = miscreantName.groups()[0]
+ 	connectionReturnString = "Got miscreantDesired of " + miscreantDesired
+	connectionReturnString += match(ipAddressOfIncomingAlien,miscreantDesired)[0]
+	successMapping = match(firstThreePartsOfIP, miscreantDesired)
+	connectionReturnString += successMapping[0]
+	if successMapping[1] and successMapping[2]:
+		host = successMapping[1]
+		port = successMapping[2]
+		connectionReturnString += "or try <a href=http://%s:%s>http://%s:%s</a>" % (host, port, host, port)
 
-  if line == '':
+  if line == '': # ran into one newline...not the best way to do it, but hey :)
+   print "string is now", connectionReturnString
    cfile.write("HTTP/1.0 200 OK\n\n")
    cfile.write("<head><title>Eh?</title></head>")
-   cfile.write("<h1>GO AWAY muhaha!</h1>")
+   cfile.write("<h1>Returned this value:[" + connectionReturnString + "]</h1>")
    cfile.close()
    csock.close()
    break # break out of this interior loop...
-
+   connectionReturnString = ""
+   
 
 # todo someday use basichttpserver...alas...
 class Csikk(SimpleHTTPRequestHandler):
