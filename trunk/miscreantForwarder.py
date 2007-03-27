@@ -3,22 +3,22 @@ import select
 #mySocket.send ( 'From:134.250.70.126to:MiscreantNamerdp') # carriage returns?
 import sys
 
-mySocketOut =  socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
 
 server = "planetlab1.byu.edu"
-myUniqueMiscreantName = "rdp_planet_lab_1"
-print "attempting to connect to proxyserver %s as miscreant %s " % (server, myUniqueMiscreantName)
+myUniqueMiscreantName = "roger_school"
+socketToSendToLocalHost = 8888 # could be over written by command line
 
+mySocketOut =  socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
 mySocketOut.connect((server, 8000))
 mySocketOut.sendall(myUniqueMiscreantName) # that's it -- as long as it comes in the first packet we're good TODO this is a kinda bad way, though...
 
-mySocketToSelf = [] #socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
-
-socketToSendToLocalHost = 3221
 if len(sys.argv) > 1:
     socketToSendToLocalHost = int(sys.argv[1])
 
+print "attempting to connect to proxyserver %s as miscreant %s " % (server, myUniqueMiscreantName)
 print "will establish incoming [through my connection on 8000 with proxy] to ", socketToSendToLocalHost
+
+mySocketToSelf = [] #socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
 
 try:
  while True:
@@ -33,8 +33,8 @@ try:
          if wroteToMe == mySocketOut:
              if not mySocketToSelf:
                  mySocketToSelf = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
-                 print "establishing socket to myself of ", socketToSendToLocalHost
-                 mySocketToSelf.connect(('', socketToSendToLocalHost))
+                 print "establishing socket to my own %d" % socketToSendToLocalHost
+                 mySocketToSelf.connect(('localhost', socketToSendToLocalHost))
 # todo if this fails [port is closed but just output something, not die]
              toSend = mySocketOut.recv(1000000)
              if toSend:
@@ -59,7 +59,7 @@ try:
                 localConnectionToSelfAlive = False
               
             if toSend:
-                print "sending [%s] out\n" % toSend
+                print "O",
                 mySocketOut.sendall(toSend)
             else:
                 localConnectionToSelfAlive = False
@@ -71,19 +71,18 @@ try:
                 mySocketToSelf.close()
                 mySocketToSelf = []
          else:
-            print "weird"
-         print "T"
+            print "weird!"
+         print "T",
      else:
-         print "z"
+         print "z",
      
 except KeyboardInterrupt:
-  print "shutting down\n"
+  print "shutting down Ctrl-C\n"
 
 # todo aggressively reconnect or something...in big server says (107, 'Transport endpoint is not connected')
 #ack! miscreant exception stops its thread! We are dead!
 
-
 mySocketOut.close()
 if mySocketToSelf:
     mySocketToSelf.close()
-print "done!\n"
+print "done finito!\n"
