@@ -4,6 +4,7 @@ import select
 import sys
 
 
+
 server = "planetlab1.byu.edu"
 myUniqueMiscreantName = "roger_school"
 socketToSendToLocalHost = 8888 # could be over written by command line
@@ -43,7 +44,7 @@ try:
                    localConnectionToSelfAlive = False # well it should be false
                    print "got a close signal--cutting it off to sockettoself"
                    toSend = toSend[0:closeLocation] # don't send that on, though it will close. Oh trust me--it will close :)
-               print "sending [%s] in" % toSend
+               # verbose print "sending [%s] in from internet to my internal socket" % toSend
                mySocketToSelf.sendall(toSend)
 # todo bound this
 
@@ -51,7 +52,7 @@ try:
                  print "ack lost it to the proxy! todo\n"
                  break
          elif wroteToMe == mySocketToSelf:
-            print "some from my local headed out"
+# verbose            print "some from my local headed out"
             try:
                 toSend = mySocketToSelf.recv(1000000)
             except socket.error, e:
