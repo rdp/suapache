@@ -18,7 +18,7 @@ class sharedList:
                 self.miscreants = {} # dictionary of threaded, running objects
                 self.lastCited = "fake starting last cited--if you see this it may mean that you haven't set up the mapping from the alien side yet"
 
-        def setupNextIncoming(self, fromIp, toHost):
+        def setupNextIncomingAlien(self, fromIp, toHost):
                 self.connectionList[fromIp] = toHost
                 self.lastCited = toHost
 
@@ -32,7 +32,7 @@ class sharedList:
 
                 if self.connectionList.has_key(alienHost): 
                     miscreantName = self.connectionList[alienHost]
-                    print "Bada boom appropriate connection alien with full IP match!"% (alienHost, miscreantName)
+                    print "Bada boom appropriate connection alien with full IP match!"
                 elif self.connectionList.has_key(alienHostBeginningThree):
 		   miscreantName = self.connectionList[alienHostBeginningThree]
 		   print "made a connection using first 3 of incoming ip..."
@@ -186,8 +186,8 @@ else:
 
 miscreantAlienListener(alienListenerBindPort).start()
 
-# now the 
-# changes in IP mapping part TODO make this a class, too.
+# now the IP mapping listener...
+# TODO make this a class, too.
 
 HOST = ''                 # Symbolic name meaning the local host
 PORT = 10005              # Arbitrary non-privileged port
@@ -206,22 +206,20 @@ try:
         # now we anticipate from:TheirIPto:rdp
 
         answers = re.search("from:(.*)to:(.*)", data)
-        hostIp, data = answers.groups()
+        hostIp, miscreantName = answers.groups()
 
         print "I think that %s should next (and subsequently) go to %s\n" % (hostIp, data)
-        if hostIp != "" and data != "":
-                globalShared.setupNextIncoming(hostIp, data)
-                conn.sendall("success in mapping--%s on my port %d will go to %s!\n" % (hostIp, alienListenerBindPort, data))
+        if hostIp != "" and miscreantName != "":
+                globalShared.setupNextIncomingAlien(hostIp, miscreantName)
+                conn.sendall("success in mapping--%s on my port %d will go to %s! \n" % (hostIp, alienListenerBindPort, miscreantName))
+		myIPAddress = socket.gethostbyname(socket.gethostname())
+		conn.sendall("Or %s:%d => %s\n" % (myIPAddress, alienListenerBindPort, miscreantName))
         else:
                 conn.sendall("FAIL!\n")
 
         conn.close()
+
 except KeyboardInterrupt: 
         print "shutting down"
         keepGoing = False
 s.close()
-
-# We also need to
-# 1) accept from miscreant (on a different port), keep open
-# 2) accepts incoming, appropriately forward to miscreant
-
