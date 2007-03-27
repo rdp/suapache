@@ -8,16 +8,23 @@ import sys
 server = "planetlab1.byu.edu"
 myUniqueMiscreantName = "roger_school"
 socketToSendToLocalHost = 8888 # could be over written by command line
+socketToConnectToProxy = 8000
 
-mySocketOut =  socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
-mySocketOut.connect((server, 8000))
-mySocketOut.sendall(myUniqueMiscreantName) # that's it -- as long as it comes in the first packet we're good TODO this is a kinda bad way, though...
-
+print "command line: localsocketin [8888], sockettoconnectforeign [8000]\n"
 if len(sys.argv) > 1:
     socketToSendToLocalHost = int(sys.argv[1])
 
-print "attempting to connect to proxyserver %s as miscreant %s " % (server, myUniqueMiscreantName)
+if len(sys.argv) > 2:
+    socketToConnectToProxy = int(sys.argv[2])
+
+
+
+print "attempting to connect to proxyserver %s:%d as miscreant %s " % (server, socketToConnectToProxy, myUniqueMiscreantName)
 print "will establish incoming [through my connection on 8000 with proxy] to ", socketToSendToLocalHost
+
+mySocketOut =  socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
+mySocketOut.connect((server, socketToConnectToProxy))
+mySocketOut.sendall(myUniqueMiscreantName) # that's it -- as long as it comes in the first packet we're good TODO this is a kinda bad way, though...
 
 mySocketToSelf = [] #socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
 
