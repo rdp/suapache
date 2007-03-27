@@ -4,19 +4,21 @@ import select
 import sys
 
 
-
 server = "planetlab1.byu.edu"
 myUniqueMiscreantName = "roger_school"
-socketToSendToLocalHost = 8888 # could be over written by command line
+socketToSendToLocalHost = 8888 
 socketToConnectToProxy = 8000
 
-print "command line: localsocketin [8888], sockettoconnectforeign [8000]\n"
+
+print "command line ref: localsocketin [8888], sockettoconnectforeign [8000]\n"
+
 if len(sys.argv) > 1:
     socketToSendToLocalHost = int(sys.argv[1])
 
+print "will establish incoming [through 8000 from proxy] to ", socketToSendToLocalHost
+
 if len(sys.argv) > 2:
     socketToConnectToProxy = int(sys.argv[2])
-
 
 
 print "attempting to connect to proxyserver %s:%d as miscreant %s " % (server, socketToConnectToProxy, myUniqueMiscreantName)

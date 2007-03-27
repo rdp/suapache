@@ -5,26 +5,33 @@ import re # regular expressions for IP address parsing
 
 # intro server
 def match(alienIP, host):
-  mySocket =  socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
-  mySocket.connect( ('localhost', 10005))
-  mySocket.sendall ( 'From:%sto:%s' % (alienIP, host))
-  returnString = ""  
-  returnString += "got back from mapping request:" + mySocket.recv ( 1024 )
-  mySocket.close()
-
-  print "done mapping %s to %s! [received %s]\n" % (alienIP, host, returnString)
-  ipOut = ""
-  portOut = ""
-  pattern = re.compile(".* (\d+\.\d+\.\d+\.\d+):(\d+) => \w+.*", re.DOTALL)
-  a =  re.match(pattern, returnString)
-  if a:
-    ipOut = a.groups()[0]
-    portOut = a.groups()[1]
-    print "internal: in match got ip %s port %s\n" % (ipOut, portOut)
-  else:
-	print "did not match with %s\n" % returnString
+ for port in (10005, 10006):
+  try:
+   print "trying port %d\n" % port
+   mySocket =  socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
+   mySocket.connect( ('localhost', port))
+   mySocket.sendall ( 'From:%sto:%s' % (alienIP, host))
+   returnString = ""  
+   returnString += "got back from mapping request:" + mySocket.recv ( 1024 )
+   mySocket.close()
  
-  return returnString, ipOut, portOut
+   print "done mapping %s to %s! [received %s]\n" % (alienIP, host, returnString)
+   ipOut = ""
+   portOut = ""
+   miscreantThoughtWas = ""
+   pattern = re.compile(".* (\d+\.\d+\.\d+\.\d+):(\d+) => ([\w_]+).*", re.DOTALL)
+   a =  re.match(pattern, returnString)
+   if a:
+     ipOut = a.groups()[0]
+     portOut = a.groups()[1]
+     miscreantThoughtWas = a.groups()[2]
+     print "internal: in match got ip %s port %s\n" % (ipOut, portOut)
+   else:
+     print "did not match with %s\n" % returnString
+  except socket.error, e:
+    print "that port didn't work!\n", e
+ 
+ return returnString, ipOut, portOut, miscreantThoughtWas
 
 #testing code:
 #match("127.0.0.1", "MiscreantNamerdpCanned")
@@ -69,13 +76,16 @@ while 1:
 	if successMapping[1] and successMapping[2]:
 		host = successMapping[1]
 		port = successMapping[2]
-		connectionReturnString += "or try <a href=http://%s:%s>http://%s:%s</a>" % (host, port, host, port)
+		miscreant = successMapping[3]
+		connectionReturnString = "Success mapping you to %s!<p>" % (miscreantDesired)
+		connectionReturnString += "or %s:%s => <a href=http://%s:%s>%s</a>" % (host, port, host, port, miscreantDesired)	
+		connectionReturnString += "<p>Try <a href=http://%s:%s>this link.<a>" % (host, port)
 
   if line == '': # ran into one newline...not the best way to do it, but hey :)
    print "string is now", connectionReturnString
    cfile.write("HTTP/1.0 200 OK\n\n")
    cfile.write("<head><title>Eh?</title></head>")
-   cfile.write("<h1>Returned this value:[" + connectionReturnString + "]</h1>")
+   cfile.write("<h1>" + connectionReturnString + "</h1>")
    cfile.close()
    csock.close()
    break # break out of this interior loop...

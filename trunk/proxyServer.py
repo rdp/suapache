@@ -16,7 +16,7 @@ class sharedList:
         def __init__(self):
                 self.connectionList = {}
                 self.miscreants = {} # dictionary of threaded, running objects
-                self.lastCited = "fake starting last cited--if you see this it may mean that you haven't set up the mapping from the alien side yet"
+                self.lastCited = "fake_roger_code starting last cited--if you see this it may mean that you haven't set up the mapping from the alien side yet"
 
         def setupNextIncomingAlien(self, fromIp, toHost):
                 self.connectionList[fromIp] = toHost
@@ -24,6 +24,9 @@ class sharedList:
 
         def addMiscreant(self, miscreantName, miscreantThatIsRunning):
                 self.miscreants[miscreantName] = miscreantThatIsRunning
+		if self.lastCited.find("fake_roger_code") == 0: # we are just barely beginning..
+			self.lastCited = miscreantName
+			print "using this as the last mapped to miscreant, as well...just in case...might want to take this off..."
 
         def addAlien(self, alienConn, alienDetails):
                 print "incoming alien details (we are adding this one) are", alienDetails
@@ -35,7 +38,7 @@ class sharedList:
                     print "Bada boom appropriate connection alien with full IP match!"
                 elif self.connectionList.has_key(alienHostBeginningThree):
 		   miscreantName = self.connectionList[alienHostBeginningThree]
-		   print "made a connection using first 3 of incoming ip..."
+		   print "made a connection using only first 3 of incoming ip..."
 		else:
                    print "uh...we don't know how to map this! Guessing latest request...%s" % self.lastCited
                    miscreantName = self.lastCited
@@ -44,7 +47,7 @@ class sharedList:
                     print "mapping to miscreant %s...success.\n" % (miscreantName)
                     self.miscreants[miscreantName].addAlien(alienConn)
                 else:
-                    errorMessage =  "no miscreant found with that name, though--giving up!!!!\n"
+                    errorMessage =  "no miscreant found with that name %s, though--giving up!!!!\n (may need to remap client and/or restart miscreant)" % (miscreantName)
                     print errorMessage
                     alienConn.send(errorMessage)
                     alienConn.close()
@@ -58,11 +61,10 @@ class miscreant( threading.Thread ):
              try: 
               while keepGoing:
                  if self.miscreantChannel and self.alienChannel:
-#                         print "selecting on %s -> :%s\n" % (self.miscreantChannel.getpeername(), self.miscreantChannel.getsockname(), self.alienChannel.getpeername(), self.alienChannel.getsockname())
                          (rr, wr, er) = select.select([self.miscreantChannel, self.alienChannel], [], [], 5)
                          alienDied = False
                          if rr:
-                                print "T"
+                                # verboseprint "R",
                                 portWritingToUs = rr[0]
                                 if portWritingToUs == self.miscreantChannel:
                                     receivedData = portWritingToUs.recv(1024000) 
@@ -74,7 +76,7 @@ class miscreant( threading.Thread ):
                                           print "sent us a close message out from miscreant so killing with alien"
                                     
                                       try:
-                                        print "sending [%s] to alien" % receivedData
+                                        #verbose print "S", #sending [%s] to alien" % receivedData
                                         self.alienChannel.sendall(receivedData)
                                       except socket.error, e:
                                             # toast that outgoing connection
@@ -104,7 +106,7 @@ class miscreant( threading.Thread ):
                                         self.miscreantChannel.sendall("control:close") # died from here
                                         print "sending in to miscreant that alien closed"
                          else:
-                             print "z"
+                             print "z",
                          
                          if wr:
                              print "weird wr\n"
@@ -113,8 +115,8 @@ class miscreant( threading.Thread ):
                              print "weirderr\n"
 
                  else:
-                     #print "d"
-                     time.sleep(3)
+                     print "d",
+                     time.sleep(1)
              except socket.error, e:
                 print e
                 print "ack! miscreant exception stops its thread! We are dead!\n" # todo inform the other, or restart.
@@ -133,70 +135,89 @@ class miscreant( threading.Thread ):
 
 class miscreantAlienListener (threading.Thread):
 
-        def __init__(self, alienBindPortAsInteger): # this is weird I can't seem to pass this to run. Oh well :)
+        def __init__(self, alienBindPortAsInteger, miscreantBindPort = 8000): # this is weird I can't seem to pass this to run. Oh well :)
                 self.alienBindPort = alienBindPortAsInteger
+		self.miscreantBindPort = miscreantBindPort
                 threading.Thread.__init__(self)
 
         def run(self):
-                HOST = ''                # Symbolic name meaning the local host
-                PORT = 8000              # Arbitrary non-privileged port
+                HOST = ''                		# Symbolic name meaning the local host
+                PORT = self.miscreantBindPort           # Arbitrary non-privileged port
 # s is the main socket from which miscreants will attach in
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.bind((HOST, PORT))
-                s.listen(1)
+		try:
+                  s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-                sAlien = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                alienPort = self.alienBindPort
-                sAlien.bind((HOST, alienPort))
-                sAlien.listen(1)
-                print "alien will listen on port", alienPort
-                print "miscreant listening on ", PORT
-                
-                while keepGoing:
-                    r, w, e = select.select([s, sAlien], [], [], 3) # wait 3 seconds
-                    
-                    if r:
-                        if r[0] == s:
-                                conn, addr = s.accept()
-                                print "got a miscreant connection by", addr
-                                name = conn.recv(1024000)
-                                name = name.lower()
-                                print "name", name
-                                newMiscreant = miscreant(conn, addr)
-                                newMiscreant.start()
-                                globalShared.addMiscreant(name, newMiscreant)
-                                print "added miscreant"
-                        elif r[0] == sAlien:
+                  sAlien = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                  alienPort = self.alienBindPort
+                  print "alien will listen on port", alienPort
+                  print "miscreant listening on ", PORT
+                  
+		  s.bind((HOST, PORT))
+                  s.listen(1)
+                  
+		  sAlien.bind((HOST, alienPort))
+                  sAlien.listen(1)
+                  
+                  while True:
+                      r, w, e = select.select([s, sAlien], [], [], 3) # wait 3 seconds
+                      
+                      if r:
+                          if r[0] == s:
+                                  conn, addr = s.accept()
+                                  print "got a miscreant connection by", addr
+                                  name = conn.recv(1024000)
+                                  name = name.lower()
+                                  print "name", name
+                                  newMiscreant = miscreant(conn, addr)
+                                  newMiscreant.start()
+                                  globalShared.addMiscreant(name, newMiscreant)
+                          elif r[0] == sAlien:
                                 conn, addr = sAlien.accept()
-                                print "got a new alien connection by"
+                                print "got a new alien connection by ", addr[0]
                                 globalShared.addAlien(conn, addr)
-                        else:
+                          else:
                                 print "weird == ", r
                                 a = r[0].accept() # throw it away
                                 print "throwing away connection"
-                sAlien.close() # clean-up
+                except socket.error, e:
+		  print "the miscreant listener choked!", e
+		sAlien.close() # clean-up
                 s.close()
-                print "we closed the main %d port!" % (PORT)
-                
+                print "we closed the main miscreant connecting port %d!, instructed rest to conk... TODO" % (PORT)
+#		keepGoing = False # todo
+		
+
+
+# process command line args...                
+print "command line args are: alien bind [3221], incomingMapsToPort [10005], miscreantBindPort [8000]\n"
 
 if len(sys.argv) >= 2:
     alienListenerBindPort = int(sys.argv[1])
 else:
     alienListenerBindPort = 3221
 
-miscreantAlienListener(alienListenerBindPort).start()
+if len(sys.argv) >= 3:
+  incomingMapsToPort= int(sys.argv[2])
+else:
+  incomingMapsToPort = 10005
+
+if len(sys.argv) >= 4:
+  miscreantBindPort = int(sys.argv[3])
+else:
+  miscreantBindPort = 8000
+
+miscreantAlienListener(alienListenerBindPort, miscreantBindPort).start()
 
 # now the IP mapping listener...
 # TODO make this a class, too.
 
 HOST = ''                 # Symbolic name meaning the local host
-PORT = 10005              # Arbitrary non-privileged port
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind((HOST, PORT))
-print "bound on port %d as the incoming alient o miscreant mapper listener :)\n" % (PORT)
-s.listen(1)
+print "%d: will bind on port %d as the incoming alient o miscreant mapper listener :)\n" % (incomingMapsToPort, incomingMapsToPort)
 try:
-  while True:
+  s.bind((HOST, incomingMapsToPort))
+  s.listen(1)
+  while keepGoing:
         conn, addr = s.accept()
         print 'Connected by', addr
         data = conn.recv(1024000)
@@ -220,6 +241,10 @@ try:
         conn.close()
 
 except KeyboardInterrupt: 
-        print "shutting down"
-        keepGoing = False
+        print "shutting downi Ctrl-C"
+except socket.error, e:
+	print "shutting down socket error with the alien listener for mapping"
+
 s.close()
+print "successfully closed alien port"
+keepGoing = False
