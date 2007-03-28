@@ -4,3 +4,11 @@ on miscreant run miscreantForwarded.py, apache.py on the port advertised
 run echoAlien.py on host to setup mapping, then wget might work..
 
 on alien after mapping  wget proxyServer:goodPort and it should connect you right through
+
+todo add redir on the fly
+save things to a DB?
+complain when no match
+only allow one miscreant with same name (reject!)
+
+case of a recent close, an extra "miscreant closed" comes through, I believe.
+non mapped -> not connect (weird entries)
