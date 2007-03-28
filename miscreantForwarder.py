@@ -7,7 +7,7 @@ import sys
 server = "planetlab1.byu.edu"
 myUniqueMiscreantName = "roger_school"
 socketToSendToLocalHost = 8888 
-socketToConnectToProxy = 8000
+socketToConnectToProxy = 8001 # todo try two of them -- a list ;)
 
 
 print "command line ref: localsocketin [8888], sockettoconnectforeign [8000]\n"
@@ -15,84 +15,93 @@ print "command line ref: localsocketin [8888], sockettoconnectforeign [8000]\n"
 if len(sys.argv) > 1:
     socketToSendToLocalHost = int(sys.argv[1])
 
-print "will establish incoming [through 8000 from proxy] to ", socketToSendToLocalHost
-
 if len(sys.argv) > 2:
     socketToConnectToProxy = int(sys.argv[2])
 
+infiniteLoop = True
+keepGoing = True
 
 print "attempting to connect to proxyserver %s:%d as miscreant %s " % (server, socketToConnectToProxy, myUniqueMiscreantName)
-print "will establish incoming [through my connection on 8000 with proxy] to ", socketToSendToLocalHost
+print "will establish incoming [through my connection on %d with proxy] to %s" % (socketToConnectToProxy, socketToSendToLocalHost)
 
-mySocketOut =  socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
-mySocketOut.connect((server, socketToConnectToProxy))
-mySocketOut.sendall(myUniqueMiscreantName) # that's it -- as long as it comes in the first packet we're good TODO this is a kinda bad way, though...
+while keepGoing:
+ print "trying to connect again..."
+ try:
+    mySocketToSelf = [] #socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
+    mySocketOut =  socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
+    mySocketOut.connect((server, socketToConnectToProxy))
+    mySocketOut.sendall(myUniqueMiscreantName) # that's it -- as long as it comes in the first packet we're good TODO this is a kinda bad way, though...
+    print "success!"
+    while True:
+         toListenTo = [mySocketOut]
+         if mySocketToSelf:
+             toListenTo += [mySocketToSelf] 
+         readMe, writeMe, errors = select.select(toListenTo, [], [], 5)
 
-mySocketToSelf = [] #socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
+         if readMe:
+             localConnectionToSelfAlive = True
+             wroteToMe = readMe[0]
+             if wroteToMe == mySocketOut:
+                 if not mySocketToSelf:
+                     mySocketToSelf = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
+                     print "establishing new inward socket to my own %d" % socketToSendToLocalHost
+                     mySocketToSelf.connect(('localhost', socketToSendToLocalHost))
+                 toSend = mySocketOut.recv(1000000)
+                 if toSend:
+                   closeLocation = toSend.find("control:close")
+                   if closeLocation != -1:
+                       localConnectionToSelfAlive = False # well it should be false
+                       print "got a close signal--cutting it off to sockettoself"
+                       toSend = toSend[0:closeLocation] # don't send that on, though it will close. Oh trust me--it will close :)
+                   #vverbose
+                   #print "sending [%s] in from internet to my internal socket" % toSend
+                   mySocketToSelf.sendall(toSend)
+    # todo bound this for errors...
 
-try:
- while True:
-     toListenTo = [mySocketOut]
-     if mySocketToSelf:
-         toListenTo += [mySocketToSelf] 
-     readMe, writeMe, errors = select.select(toListenTo, [], [], 5)
+                 else:
+                     print "ack lost it to the proxy! todo\n"
+                     break
 
-     if readMe:
-         localConnectionToSelfAlive = True
-         wroteToMe = readMe[0]
-         if wroteToMe == mySocketOut:
-             if not mySocketToSelf:
-                 mySocketToSelf = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
-                 print "establishing socket to my own %d" % socketToSendToLocalHost
-                 mySocketToSelf.connect(('localhost', socketToSendToLocalHost))
-# todo if this fails [port is closed but just output something, not die]
-             toSend = mySocketOut.recv(1000000)
-             if toSend:
-               closeLocation = toSend.find("control:close")
-               if closeLocation != -1:
-                   localConnectionToSelfAlive = False # well it should be false
-                   print "got a close signal--cutting it off to sockettoself"
-                   toSend = toSend[0:closeLocation] # don't send that on, though it will close. Oh trust me--it will close :)
-               # verbose print "sending [%s] in from internet to my internal socket" % toSend
-               mySocketToSelf.sendall(toSend)
-# todo bound this
+             elif wroteToMe == mySocketToSelf:
+                try:
+                    toSend = mySocketToSelf.recv(1000000)
+                     # verbose
+                    #print "some from my local headed out [%s] " % toSend 
+                except socket.error, e:
+                    print "local connection dropped us."
+                    localConnectionToSelfAlive = False
+                  
+                if toSend:
+    # verbose                print "O",
+                    mySocketOut.sendall(toSend)
+                else:
+                    localConnectionToSelfAlive = False
+                    print "local client must have dropped us it's no longer around\n"
 
              else:
-                 print "ack lost it to the proxy! todo\n"
-                 break
-         elif wroteToMe == mySocketToSelf:
-# verbose            print "some from my local headed out"
-            try:
-                toSend = mySocketToSelf.recv(1000000)
-            except socket.error, e:
-                print "local connection dropped us."
-                localConnectionToSelfAlive = False
-              
-            if toSend:
-                print "O",
-                mySocketOut.sendall(toSend)
-            else:
-                localConnectionToSelfAlive = False
-                print "local client must have dropped us it's no longer around\n"
+                print "weird!"
 
-            if not localConnectionToSelfAlive:
-                print "telling proxy that socket here closed\n"
-                mySocketOut.sendall("control:close")
-                mySocketToSelf.close()
-                mySocketToSelf = []
+             if not localConnectionToSelfAlive:
+                    print "telling proxy that socket here closed\n"
+                    mySocketOut.sendall("control:close")
+                    mySocketToSelf.close()
+                    mySocketToSelf = []
+
+    # verbose         print "T",
          else:
-            print "weird!"
-         print "T",
-     else:
-         print "z",
-     
-except KeyboardInterrupt:
-  print "shutting down Ctrl-C\n"
+             #verbose print "select_z",
+             pass
 
-# todo aggressively reconnect or something...in big server says (107, 'Transport endpoint is not connected')
-#ack! miscreant exception stops its thread! We are dead!
+ except socket.error, e:
+   print "socket exception!\n", e
+ except KeyboardInterrupt:
+   print "shutting down Ctrl-C\n"
+ if not infiniteLoop:
+     keepGoing = False
+ mySocketOut.close()
+ if mySocketToSelf:
+     mySocketToSelf.close()
 
-mySocketOut.close()
-if mySocketToSelf:
-    mySocketToSelf.close()
+#ack! miscreant exception stops its thread! We are dead! todo :)
+
 print "done finito!\n"
