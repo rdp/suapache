@@ -5,20 +5,20 @@ import re # regular expressions for IP address parsing
 
 # intro server
 def match(alienIP, host):
+ returnString = ""  
+ ipOut = ""
+ portOut = ""
+ miscreantThoughtWas = ""
  for port in (10005, 10006):
   try:
    print "trying port %d\n" % port
    mySocket =  socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
    mySocket.connect( ('localhost', port))
    mySocket.sendall ( 'From:%sto:%s' % (alienIP, host))
-   returnString = ""  
    returnString += "got back from mapping request:" + mySocket.recv ( 1024 )
    mySocket.close()
  
    print "done mapping %s to %s! [received %s]\n" % (alienIP, host, returnString)
-   ipOut = ""
-   portOut = ""
-   miscreantThoughtWas = ""
    pattern = re.compile(".* (\d+\.\d+\.\d+\.\d+):(\d+) => ([\w_]+).*", re.DOTALL)
    a =  re.match(pattern, returnString)
    if a:
@@ -27,7 +27,7 @@ def match(alienIP, host):
      miscreantThoughtWas = a.groups()[2]
      print "internal: in match got ip %s port %s\n" % (ipOut, portOut)
    else:
-     print "did not match with %s\n" % returnString
+     print "DID NOT MATCH with %s\n" % returnString
   except socket.error, e:
     print "that port didn't work!\n", e
  
@@ -42,7 +42,7 @@ import socket
 
 host = ''
 port = 7777
-print "listening on port %d for incoming HTTP requests which I will then map to the right place" % (port)
+print "Port:%d incoming HTTP requests which I will then map to the right miscreant by connecting to mapper" % (port)
 sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 sock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
 sock.bind((host,port))
@@ -60,16 +60,14 @@ while 1:
 
 # Protocol exchange - read request
  connectionReturnString = ""
-
+ totalIn = 0
  while 1:
   line = cfile.readline().strip()
 #  print line
-  miscreantName = re.match(".*mapMeTo=(\w*)", line)
-  if not miscreantName:
-	miscreantName =  re.match(".*mapToMe=(\w*)", line)
+  miscreantName = re.match(".*mapmeto=(\w*)", line.lower())
   if miscreantName:
  	miscreantDesired = miscreantName.groups()[0]
- 	connectionReturnString = "Got miscreantDesired of " + miscreantDesired
+ 	connectionReturnString = "Parsed your request: You desired miscreant name " + miscreantDesired
 	connectionReturnString += match(ipAddressOfIncomingAlien,miscreantDesired)[0]
 	successMapping = match(firstThreePartsOfIP, miscreantDesired)
 	connectionReturnString += successMapping[0]
@@ -80,11 +78,14 @@ while 1:
 		connectionReturnString = "Success mapping you to %s!<p>" % (miscreantDesired)
 		connectionReturnString += "or %s:%s => <a href=http://%s:%s>%s</a>" % (host, port, host, port, miscreantDesired)	
 		connectionReturnString += "<p>Try <a href=http://%s:%s>this link.<a>" % (host, port)
+	else:
+	  connectionReturnString += "error connecting into mapper (or parsing it) for some reason"
 
   if line == '': # ran into one newline...not the best way to do it, but hey :)
    print "string is now", connectionReturnString
    cfile.write("HTTP/1.0 200 OK\n\n")
-   cfile.write("<head><title>Eh?</title></head>")
+   cfile.write("<head><title>Eh? %d</title></head>" % totalIn)
+   totalIn += 1
    cfile.write("<h1>" + connectionReturnString + "</h1>")
    cfile.close()
    csock.close()
