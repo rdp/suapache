@@ -8,7 +8,6 @@ import sys
 import re
 
 keepGoing = True
-
 # 
 # multiple threads, with a shared object for deciding forwarding
 class sharedList:
@@ -19,6 +18,7 @@ class sharedList:
                 self.lastCited = "fake_roger_code starting last cited--if you see this it may mean that you haven't set up the mapping from the alien side yet"
 
         def setupNextIncomingAlien(self, fromIp, toHost):
+		print "setupnextincominglaien from %s to %s" % (fromIp, toHost)
                 self.connectionList[fromIp] = toHost
                 self.lastCited = toHost
 
@@ -40,12 +40,13 @@ class sharedList:
 		   miscreantName = self.connectionList[alienHostBeginningThree]
 		   print "made a connection using only first 3 of incoming ip..."
 		else:
-                   print "uh...we don't know how to map this! Guessing latest request...%s" % self.lastCited
+                   print "uh...we don't know how to map this! Guessing latest mapped in request...%s" % self.lastCited
                    miscreantName = self.lastCited
 	
                 if self.miscreants.has_key(miscreantName):
-                    print "mapping to miscreant %s...success.\n" % (miscreantName)
+                    print "mapping to miscreant %s...." % (miscreantName),
                     self.miscreants[miscreantName].addAlien(alienConn)
+		    print "success."
                 else:
                     errorMessage =  "no miscreant found with that name %s, though--giving up!!!!\n (may need to remap client and/or restart miscreant)" % (miscreantName)
                     print errorMessage
@@ -60,14 +61,18 @@ class miscreant( threading.Thread ):
              print 'Received starting miscreant connection:', self.details [ 0 ]
              try: 
               while keepGoing:
-                 if self.miscreantChannel and self.alienChannel:
-                         (rr, wr, er) = select.select([self.miscreantChannel, self.alienChannel], [], [], 5)
+		 	 listenToArray = [self.miscreantChannel]
+		 	 if self.alienChannel:
+				listenToArray += [self.alienChannel]
+                         (rr, wr, er) = select.select(listenToArray, [], [], .5)
                          alienDied = False
                          if rr:
                                 # verboseprint "R",
                                 portWritingToUs = rr[0]
                                 if portWritingToUs == self.miscreantChannel:
                                     receivedData = portWritingToUs.recv(1024000) 
+				    #vverbose
+				    #print "received [%s] from miscreant " % receivedData
                                     if receivedData:
                                       controlLocation = receivedData.find("control:close")
                                       if controlLocation != -1:
@@ -76,14 +81,19 @@ class miscreant( threading.Thread ):
                                           print "sent us a close message out from miscreant so killing with alien"
                                     
                                       try:
-                                        #verbose print "S", #sending [%s] to alien" % receivedData
-                                        self.alienChannel.sendall(receivedData)
+                                        #verbose print "S", 
+					#vverbose
+					#print "sending [%s] to alien" % receivedData
+                                        if self.alienChannel:
+						self.alienChannel.sendall(receivedData)
+					else:
+						print "unable to send packet out to alien--already dead!"
                                       except socket.error, e:
                                             # toast that outgoing connection
                                             alienDied = True # well, kind of it died :)
-                                            print "alien arbitrarily died"
+                                            print "alien arbitrarily cut off"
                                     else:
-                                        print "miscreant died!"
+                                        print "miscreant died whoa!"
                                         self.miscreantChannel.close()
                                         self.miscreantChannel = [] # necessary?
                                         # todo take yourself out of the whole loop, really
@@ -92,6 +102,8 @@ class miscreant( threading.Thread ):
                                 elif portWritingToUs == self.alienChannel:
                                     try:
                                        receivedData = portWritingToUs.recv(1024000) 
+				       # vverbose
+				       #print "received %s from Alien, passing through" % (receivedData)
                                     except socket.error, e:
                                        alienDied = True
                                     if receivedData:
@@ -99,14 +111,17 @@ class miscreant( threading.Thread ):
                                     else:
                                         alienDied = True
 # todo write to miscreant, inform of untimely death
-                                if alienDied:
-                                        print "Alien died somehow!\n"
-                                        self.alienChannel.close()
+                                if alienDied and self.alienChannel: # todo why this and ____ ?
+                                        print "Alien died somehow  -- sending control message!\n"
+					self.alienChannel.close()
                                         self.alienChannel = []
                                         self.miscreantChannel.sendall("control:close") # died from here
                                         print "sending in to miscreant that alien closed"
+					# for now flush--in the future could just ignore it on an old closed tunnel port
                          else:
-                             print "z",
+                             #verbose
+			     #print "z",
+			     pass
                          
                          if wr:
                              print "weird wr\n"
@@ -114,18 +129,23 @@ class miscreant( threading.Thread ):
                          if er:
                              print "weirderr\n"
 
-                 else:
-                     print "d",
-                     time.sleep(1)
+              print "Done with this alien because keepGoing is done...or something!"
              except socket.error, e:
                 print e
-                print "ack! miscreant exception stops its thread! We are dead!\n" # todo inform the other, or restart.
+                print "ack! miscreant exception stops its thread! We are dead! H\n" # todo inform the other, or restart.
                 self.miscreantChannel.close()
-                self.alienChannel.close()
+                if self.alienChannel: # todo this is weird
+			self.alienChannel.close()
 
                    
         def addAlien(self, channel):
-                self.alienChannel = channel
+		if self.alienChannel:
+			print "experimental closure of old alien"
+			self.alienChannel.close()
+			self.miscreantChannel.sendall("control:close") # died from here
+                self.miscreantChannel.sendall("control:open")
+
+		self.alienChannel = channel
 
         def __init__(self, channel, details): # shamelessly lifted from http://www.devshed.com/c/a/Python/Basic-Threading-in-Python/1/
                 self.miscreantChannel = channel # .send, .recv
@@ -142,35 +162,37 @@ class miscreantAlienListener (threading.Thread):
 
         def run(self):
                 HOST = ''                		# Symbolic name meaning the local host
-                PORT = self.miscreantBindPort           # Arbitrary non-privileged port
-# s is the main socket from which miscreants will attach in
 		try:
+		# s is the main socket from which miscreants will attach in
                   s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
                   sAlien = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                   alienPort = self.alienBindPort
-                  print "alien will listen on port", alienPort
-                  print "miscreant listening on ", PORT
+                  print "Port:%d alien will listen on port" % alienPort
+                  print "Port:%d miscreant listening on "% self.miscreantBindPort
                   
-		  s.bind((HOST, PORT))
+		  s.bind((HOST, self.miscreantBindPort))
                   s.listen(1)
                   
 		  sAlien.bind((HOST, alienPort))
                   sAlien.listen(1)
                   
-                  while True:
-                      r, w, e = select.select([s, sAlien], [], [], 3) # wait 3 seconds
+                  while globals()["keepGoing"]: # python bug
+                      r, w, e = select.select([s, sAlien], [], [], 1) # wait 1 seconds
                       
                       if r:
                           if r[0] == s:
                                   conn, addr = s.accept()
-                                  print "got a miscreant connection by", addr
+                                  print "got a connection by", addr
                                   name = conn.recv(1024000)
                                   name = name.lower()
-                                  print "name", name
-                                  newMiscreant = miscreant(conn, addr)
-                                  newMiscreant.start()
-                                  globalShared.addMiscreant(name, newMiscreant)
+				  if name.find("get http://") == -1:
+                                    print "miscreant name will be %s" % name
+                                    newMiscreant = miscreant(conn, addr)
+                                    newMiscreant.start()
+                                    globalShared.addMiscreant(name, newMiscreant)
+				  else:
+				    print "discarding miscreant (I think it's fake)[%s]" % name
                           elif r[0] == sAlien:
                                 conn, addr = sAlien.accept()
                                 print "got a new alien connection by ", addr[0]
@@ -179,17 +201,19 @@ class miscreantAlienListener (threading.Thread):
                                 print "weird == ", r
                                 a = r[0].accept() # throw it away
                                 print "throwing away connection"
+                  print "done here 2\n"
                 except socket.error, e:
-		  print "the miscreant listener choked!", e
+		  print "THE MISCREANT LISTENER CHOKED!", e
+			
 		sAlien.close() # clean-up
                 s.close()
-                print "we closed the main miscreant connecting port %d!, instructed rest to conk... TODO" % (PORT)
-#		keepGoing = False # todo
+                print "we closed the main miscreant connecting port %d!, instructed rest to conk... TODO" % (self.miscreantBindPort)
+		globals()["keepGoing"] = False # todo
 		
 
 
 # process command line args...                
-print "command line args are: alien bind [3221], incomingMapsToPort [10005], miscreantBindPort [8000]\n"
+print "command line args are: alien bind [3221], incomingMapsToPort [10005], miscreantBindPort [8000]"
 
 if len(sys.argv) >= 2:
     alienListenerBindPort = int(sys.argv[1])
@@ -207,13 +231,15 @@ else:
   miscreantBindPort = 8000
 
 miscreantAlienListener(alienListenerBindPort, miscreantBindPort).start()
+time.sleep(1) # give us a chance to see if it is toast...
+print "continuing"
 
 # now the IP mapping listener...
 # TODO make this a class, too.
 
 HOST = ''                 # Symbolic name meaning the local host
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print "%d: will bind on port %d as the incoming alient o miscreant mapper listener :)\n" % (incomingMapsToPort, incomingMapsToPort)
+print "Port:%d  is incoming alien to miscreant mapper listener :)" % (incomingMapsToPort)
 try:
   s.bind((HOST, incomingMapsToPort))
   s.listen(1)
@@ -229,17 +255,20 @@ try:
         answers = re.search("from:(.*)to:(.*)", data)
         hostIp, miscreantName = answers.groups()
 
-        print "I think that %s should next (and subsequently) go to %s\n" % (hostIp, data)
+        print "I think that %s should next (and subsequently) go to %s\n" % (hostIp, miscreantName)
         if hostIp != "" and miscreantName != "":
                 globalShared.setupNextIncomingAlien(hostIp, miscreantName)
-                conn.sendall("success in mapping--%s on my port %d will go to %s! \n" % (hostIp, alienListenerBindPort, miscreantName))
 		myIPAddress = socket.gethostbyname(socket.gethostname())
-		conn.sendall("Or %s:%d => %s\n" % (myIPAddress, alienListenerBindPort, miscreantName))
+                outputString = "success in mapping--%s on my port %d will go to %s! \n" % (hostIp, alienListenerBindPort, miscreantName)
+		outputString += "Or %s:%d => %s\n" % (myIPAddress, alienListenerBindPort, miscreantName)
+		conn.sendall(outputString) # we combine the above lines so that we can worry about parsing a single packet on the incoming.
+		print "success"
         else:
                 conn.sendall("FAIL!\n")
+		print "fail"
 
         conn.close()
-
+  print "done with here 3\n"
 except KeyboardInterrupt: 
         print "shutting downi Ctrl-C"
 except socket.error, e:
