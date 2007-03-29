@@ -1,16 +1,13 @@
 import socket
 import select
-#mySocket.send ( 'From:134.250.70.126to:MiscreantNamerdp') # carriage returns?
 import sys
-
 
 server = "planetlab1.byu.edu"
 myUniqueMiscreantName = "roger_school"
 socketToSendToLocalHost = 8888 
-socketToConnectToProxy = 8001 # todo try two of them -- a list ;)
+socketToConnectToProxy = 8000 # todo try two of them -- a list ;)
 
-
-print "command line ref: localsocketin [8888], sockettoconnectforeign [8000]\n"
+print "command line ref: localsocketin [8888], sockettoconnectforeign [8000], miscreantNameToBeKnownAs [%s]\n" % (myUniqueMiscreantName)
 
 if len(sys.argv) > 1:
     socketToSendToLocalHost = int(sys.argv[1])
@@ -18,14 +15,18 @@ if len(sys.argv) > 1:
 if len(sys.argv) > 2:
     socketToConnectToProxy = int(sys.argv[2])
 
+if len(sys.argv) > 3:
+    myUniqueMiscreantName = sys.argv[3]
+
+
 infiniteLoop = True
 keepGoing = True
 
-print "attempting to connect to proxyserver %s:%d as miscreant %s " % (server, socketToConnectToProxy, myUniqueMiscreantName)
 print "will establish incoming [through my connection on %d with proxy] to %s" % (socketToConnectToProxy, socketToSendToLocalHost)
+print "attempting to connect to proxyserver %s:%d as miscreant %s " % (server, socketToConnectToProxy, myUniqueMiscreantName)
 
 while keepGoing:
- print "trying to connect again..."
+ print "about to connect......"
  try:
     mySocketToSelf = [] #socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
     mySocketOut =  socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
@@ -46,26 +47,37 @@ while keepGoing:
                      mySocketToSelf = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
                      print "establishing new inward socket to my own %d" % socketToSendToLocalHost
                      mySocketToSelf.connect(('localhost', socketToSendToLocalHost))
-                 toSend = mySocketOut.recv(1000000)
+                 toSend = mySocketOut.recv(1000000) # todo bound
+                 #vverbose
+                 #print "got [%s] from proxy heading in" % toSend
                  if toSend:
+# assume that close comes before open...if it comes...todo some day have them all started/terminated...                       
                    closeLocation = toSend.find("control:close")
                    if closeLocation != -1:
                        localConnectionToSelfAlive = False # well it should be false
                        print "got a close signal--cutting it off to sockettoself"
                        toSend = toSend[0:closeLocation] # don't send that on, though it will close. Oh trust me--it will close :)
+
+                   openLocation = toSend.find("control:open")
+                   if openLocation != -1:
+                       toSend = toSend[openLocation + 12:] # don't send on the open message...
+
                    #vverbose
                    #print "sending [%s] in from internet to my internal socket" % toSend
-                   mySocketToSelf.sendall(toSend)
-    # todo bound this for errors...
-
+                   try:
+                       mySocketToSelf.sendall(toSend)
+                   except socket.error, e:
+                        print "local connection dropped us."
+                        localConnectionToSelfAlive = False
                  else:
                      print "ack lost it to the proxy! todo\n"
                      break
 
              elif wroteToMe == mySocketToSelf:
+                toSend = ""
                 try:
                     toSend = mySocketToSelf.recv(1000000)
-                     # verbose
+                     # vverbose
                     #print "some from my local headed out [%s] " % toSend 
                 except socket.error, e:
                     print "local connection dropped us."
@@ -92,15 +104,19 @@ while keepGoing:
              #verbose print "select_z",
              pass
 
- except socket.error, e:
-   print "socket exception!\n", e
  except KeyboardInterrupt:
    print "shutting down Ctrl-C\n"
- if not infiniteLoop:
-     keepGoing = False
+   keepGoing = False
+ except socket.error, e:
+   print "ack random unhandled socket exception!\n", e
+
+
  mySocketOut.close()
  if mySocketToSelf:
      mySocketToSelf.close()
+
+ if not infiniteLoop:
+     keepGoing = False # only do loop once...
 
 #ack! miscreant exception stops its thread! We are dead! todo :)
 
