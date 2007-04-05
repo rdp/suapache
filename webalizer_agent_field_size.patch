@@ -1,0 +1,12 @@
+diff -Naur webalizer-2.01-10/webalizer.h webalizer-2.01-10_patched/webalizer.h
+--- webalizer-2.01-10/webalizer.h	2001-02-09 19:58:18.000000000 -0500
++++ webalizer-2.01-10_patched/webalizer.h	2006-04-24 18:17:46.027134000 -0400
+@@ -17,7 +17,7 @@
+ #define MAXURLH  128                   /* Max URL field size in htab       */
+ #define MAXREF   1024                  /* Max referrer field size          */
+ #define MAXREFH  128                   /* Max referrer field size in htab  */
+-#define MAXAGENT 64                    /* Max user agent field size        */
++#define MAXAGENT 1024                    /* Max user agent field size        */
+ #define MAXCTRY  48                    /* Max country name size            */
+ #define MAXSRCH  256                   /* Max size of search string buffer */
+ #define MAXSRCHH 64                    /* Max size of search str in htab   */
