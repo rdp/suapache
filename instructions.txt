@@ -14,3 +14,6 @@ case of a recent close, an extra "miscreant closed" comes through, I believe. (q
 msicreant doesn't seem to catch when other guy (proxy) dies...
 seems to be a bug on first mapping...
 
+bug: fire up miscreantProxy, kill proxyServer -- they don't die.
+bug: go to a non existing miscreant, hit "reload reload reload" and sometimes it chokes. yeck?
+todo rename everything yeck mapper middle man, endpoint
