@@ -3,7 +3,7 @@ import select
 import sys
 
 # parameters -- vary these
-myUniqueMiscreantName = "roger_at_school_ruby_3001"
+myUniqueMiscreantName = "roger_3001"
 socketToSendToLocalHost = 3001 # this is the  
 
 # more parameters, probably don't have to change
