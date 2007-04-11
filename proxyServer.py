@@ -7,6 +7,8 @@ import time
 import sys
 import re
 
+pingString = "PINGPONG@@@@!!!!"
+
 keepGoing = True
 # 
 # multiple threads, with a shared object for deciding forwarding
@@ -74,6 +76,13 @@ class miscreant( threading.Thread ):
 				    #vverbose
 				    #print "received [%s] from miscreant " % receivedData
                                     if receivedData:
+                                      pingLocation = receivedData.find(pingString)
+                                      if pingLocation != -1:
+                                           print "got ping!\n"
+                                           assert len(receivedData) == len(receivedData)
+                                           receivedData = ""
+                                           # todo continue?
+                                            
                                       controlLocation = receivedData.find("control:close")
                                       if controlLocation != -1:
                                           alienDied = True
@@ -203,9 +212,9 @@ class miscreantAlienListener (threading.Thread):
                                 print "weird == ", r
                                 a = r[0].accept() # throw it away
                                 print "throwing away connection"
-                  print "done here 2\n"
+                  print "done here because of keepGoign miscreant/alien listening pouncer\n"
                 except socket.error, e:
-		  print "THE MISCREANT LISTENER CHOKED socket.error!", e
+		  print "THE MISCREANT LISTENER CHOKED (or alien listener) socket.error!%d" % self.miscreantBindPort , e
 			
 		sAlien.close() # clean-up
                 s.close()
@@ -246,31 +255,41 @@ try:
   s.bind((HOST, incomingMapsToPort))
   s.listen(1)
   while keepGoing:
-        conn, addr = s.accept()
-        print 'Connected by', addr
-        data = conn.recv(1024000)
-        # note we don't do any error checking...
+        r, w, e = select.select([s], [], [], 1) # wait 1 seconds
+                     
+        if r:
+             if r[0] == s:        
+                conn, addr = s.accept() # todo this needs to become a listen...ack!
+                print 'Connected by', addr
+                data = conn.recv(1024000)
+                # note we don't do any error checking...
 
-        data = data.lower() # lower case it
-        # now we anticipate from:TheirIPto:rdp
+                data = data.lower() # lower case it
+                # now we anticipate from:TheirIPto:rdp
 
-        answers = re.search("from:(.*)to:(.*)", data)
-        hostIp, miscreantName = answers.groups()
+                answers = re.search("from:(.*)to:(.*)", data)
+                hostIp, miscreantName = answers.groups()
 
-        print "I think that %s should next (and subsequently) go to %s\n" % (hostIp, miscreantName)
-        if hostIp != "" and miscreantName != "":
-                globalShared.setupNextIncomingAlien(hostIp, miscreantName)
-		myIPAddress = socket.gethostbyname(socket.gethostname())
-                outputString = "success in mapping--%s on my port %d will go to %s! \n" % (hostIp, alienListenerBindPort, miscreantName)
-		outputString += "Or %s:%d => %s\n" % (myIPAddress, alienListenerBindPort, miscreantName)
-		conn.sendall(outputString) # we combine the above lines so that we can worry about parsing a single packet on the incoming.
-		print "success"
+                print "I think that %s should next (and subsequently) go to %s\n" % (hostIp, miscreantName)
+                if hostIp != "" and miscreantName != "":
+                        globalShared.setupNextIncomingAlien(hostIp, miscreantName)
+                        myIPAddress = socket.gethostbyname(socket.gethostname())
+                        outputString = "success in mapping--%s on my port %d will go to %s! \n" % (hostIp, alienListenerBindPort, miscreantName)
+                        outputString += "Or %s:%d => %s\n" % (myIPAddress, alienListenerBindPort, miscreantName)
+                        conn.sendall(outputString) # we combine the above lines so that we can worry about parsing a single packet on the incoming.
+                        print "success"
+                else:
+                        conn.sendall("FAIL!\n")
+                        print "fail"
+
+                conn.close()
+             else:
+                    print "errrrr"
         else:
-                conn.sendall("FAIL!\n")
-		print "fail"
-
-        conn.close()
-  print "done with here 3\n"
+               #verbose
+               print "mapper_z",
+               
+  print "done with mapping listener\n"
 except KeyboardInterrupt: 
         print "shutting downi Ctrl-C"
 except socket.error, e:
