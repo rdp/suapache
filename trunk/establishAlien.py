@@ -48,6 +48,9 @@ sock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
 sock.bind((host,port))
 sock.listen(1)
 
+
+totalIn = 0
+
 while 1:
  csock,caddr = sock.accept()
  cfile = csock.makefile('rw',0)
@@ -60,7 +63,6 @@ while 1:
 
 # Protocol exchange - read request
  connectionReturnString = ""
- totalIn = 0
  while 1:
   line = cfile.readline().strip()
 #  print line
@@ -78,8 +80,13 @@ while 1:
 		connectionReturnString = "Success mapping you to %s!<p>" % (miscreantDesired)
 		connectionReturnString += "or %s:%s => <a href=http://%s:%s>%s</a>" % (host, port, host, port, miscreantDesired)	
 		connectionReturnString += "<p>Try <a href=http://%s:%s>this link.<a>" % (host, port)
+		redirectToLocation = re.match(".*redirectto=[%s].*")
+		if redirectToLocation:
+			pathString = redirectLocation.groups()[0]
+		  	connectionReturnString += "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"1; URL=http://%s:%s/%s\">" % (host, port, pathString)
+			print "redirecting to %s"  % (pathString)
 	else:
-	  connectionReturnString += "error connecting into mapper (or parsing it) for some reason"
+	  connectionReturnString += "error connecting into mapper (or parsing it) for some reason -- proxyServer might be down"
 
   if line == '': # ran into one newline...not the best way to do it, but hey :)
    print "string is now", connectionReturnString
