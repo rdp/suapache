@@ -1,18 +1,17 @@
 import socket
 import select
 import sys
+import time
 
 pingString = "PINGPONG@@@@!!!!"
 
 # parameters -- vary these
 myUniqueMiscreantName = socket.gethostname()
 socketToSendToLocalHost = 3001 # this is the  
-
-# more parameters, probably don't have to change
 server = "planetlab1.byu.edu"
-socketToConnectToProxy = 8000 # todo do two of them -- a list ;)
+socketToConnectToProxy = 8000 # todo do two of them -- a list ;) (?)
 
-print "command line ref: localsocketin [8888], sockettoconnectforeign [8000], miscreantNameToBeKnownAs [%s]\n" % (myUniqueMiscreantName)
+print "command line ref: localsocketin [8888], sockettoconnectforeign [8000], miscreantNameToBeKnownAs [%s], server [%s]\n" % (myUniqueMiscreantName, server)
 
 if len(sys.argv) > 1:
     socketToSendToLocalHost = int(sys.argv[1])
@@ -23,6 +22,8 @@ if len(sys.argv) > 2:
 if len(sys.argv) > 3:
     myUniqueMiscreantName = sys.argv[3]
 
+if len(sys.argv) > 4:
+    server = sys.argv[4]
 
 infiniteLoop = True
 keepGoing = True
@@ -45,8 +46,10 @@ while keepGoing:
              toListenTo += [mySocketToSelf] 
          readMe, writeMe, errors = select.select(toListenTo, [], [], 5)
          # ping every 15 s
+         print "time!"
          if time.time() - lastPingTime > 15:
             mySocketToProxy.sendall(pingString)
+            print "sending " + pingString
          # ha ha :)
          if readMe:
              localConnectionToSelfAlive = True
