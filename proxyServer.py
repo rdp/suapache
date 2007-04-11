@@ -162,6 +162,8 @@ class miscreantAlienListener (threading.Thread):
 
         def run(self):
                 HOST = ''                		# Symbolic name meaning the local host
+	      # todo make this loop--the listener upchucks every so often for some reason (todo figure out why)
+	# todo: when it dies the other should notice getpeername
 		try:
 		# s is the main socket from which miscreants will attach in
                   s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -203,7 +205,7 @@ class miscreantAlienListener (threading.Thread):
                                 print "throwing away connection"
                   print "done here 2\n"
                 except socket.error, e:
-		  print "THE MISCREANT LISTENER CHOKED!", e
+		  print "THE MISCREANT LISTENER CHOKED socket.error!", e
 			
 		sAlien.close() # clean-up
                 s.close()
