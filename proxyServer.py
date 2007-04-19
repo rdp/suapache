@@ -44,8 +44,13 @@ class sharedList:
              print "success."
 	     return True
           except socket.error, e:
-            print "ack! failure adding alien to [%s] ERROR!" % (miscreantName)
+            print "ack! failure adding alien to [%s] ERROR!" % (miscreantName), e
 	    return False
+	  except AssertionError, e:
+                 print "assertion error -- todo throw a socket error you lazy!"
+                 return False
+
+# todo here's the test case: start, one goes in, then another, then the first dies
 
         def mapAlien(self, alienConn, alienDetails):
                 print "incoming alien details (we are adding this one) are", alienDetails
@@ -68,7 +73,7 @@ class sharedList:
                 if self.miscreants.has_key(miscreantName):
                     print "mapping to miscreant [%s]...." % (miscreantName),
 		    if not self.tryToHookAlien(miscreantName, alienConn):
-			print "ack! adding it to [%s] failed ERROR deleting it!"
+			print "ack! adding it to [%s] failed ERROR deleting it!" % (miscreantName)
 			del self.miscreants[miscreantName]
 			if self.lastCited == miscreantName:
 				if self.miscreants:
@@ -172,7 +177,9 @@ class miscreant( threading.Thread ):
                          if er:
                              print "weirderr\n"
 
-              print "Done with this alien because keepGoing is done...or something!"
+              print "Done with this alien because keepGoing is done...or miscreant has died!" # todo test this line works.
+              if self.alienChannel: # todo figure out how this work with multiple
+                        self.alienChannel.close()
              except socket.error, e:
                 print e
                 print "ack! miscreant exception stops its thread! We are dead! Miscreant is dead\n" # todo inform the other, or restart., take it off list...
@@ -182,6 +189,9 @@ class miscreant( threading.Thread ):
 
                    
         def addAlien(self, channel):
+                if not self.miscreantChannel:
+                        print "ERROR we need to take these guys out of loop -- we got an alien into a miscreant thread with a dead miscreant!"
+                        assert 1 == 2
 		if self.alienChannel:
 			print "experimental closure of old alien"
 			self.alienChannel.close()
@@ -226,23 +236,29 @@ class miscreantAlienListener (threading.Thread):
                   
 		  sAlien.bind((HOST, alienPort))
                   sAlien.listen(1)
-                  
+      
+                  miscreantPattern = re.compile("miscreant:version=(\d+),name=\[(\S+)\]")
                   while globals()["keepGoing"]: # python bug
                       r, w, e = select.select([sMiscreant, sAlien], [], [], 1) # wait 1 second
                       
                       if r:
                           if r[0] == sMiscreant:
                                   conn, addr = sMiscreant.accept()
-                                  print "got a connection by", addr
-                                  name = conn.recv(1024000)
-                                  name = name.lower()
-				  if name.find("get http://") == -1:
-                                    print "miscreant name will be %s" % name
-                                    newMiscreant = miscreant(conn, addr)
-                                    newMiscreant.start()
-                                    globalShared.addMiscreant(name, newMiscreant)
+                                  print "got an attempted incoming miscreant connection:", addr
+                                  received = conn.recv(1024000)
+                                  matched = miscreantPattern.match(received)
+                                  if matched:
+                                          name = matched.groups()[1]
+                                          version = matched.groups()[0] # unused for now I think
+                                          name = name.lower()
+                                          
+                                          print "miscreant name will be %s" % name
+                                          newMiscreant = miscreant(conn, addr)
+                                          newMiscreant.start()
+                                          globalShared.addMiscreant(name, newMiscreant)
 				  else:
-				    print "discarding miscreant (I think it's fake)[%s]" % name
+				    print "discarding miscreant (I think it's fake)[%s]" % received
+
                           elif r[0] == sAlien:
                                 conn, addr = sAlien.accept()
                                 print "got a new alien connection by ", addr[0]
@@ -262,13 +278,13 @@ class miscreantAlienListener (threading.Thread):
 				print "miscreant_alien_z_2",
                   print "done here because of keepGoign dying miscreant/alien listening pouncer\n"
                 except socket.error, e:
-		  print "THE MISCREANT LISTENER CHOKED (or alien listener) socket.error!%d" % self.miscreantBindPort , e
+		  print "THE MISCREANT PORT OR ALIEN PORT CHOKED socket.error!( %d or %d) " % (self.miscreantBindPort, self.alienBindPort) , e
 			
 		sAlien.close() # clean-up
                 sMiscreant.close()
                 print "we closed the main miscreant connecting port %d!, instructed rest to conk... TODO" % (self.miscreantBindPort)
-		globals()["keepGoing"] = False # todo
-		print "z_2 closed it"
+		globals()["keepGoing"] = False # todo test these with the threads...
+		print "z_2: i just closed keepGoing"
 		
 
 
@@ -347,6 +363,6 @@ except socket.error, e:
 s.close()
 print "successfully closed alien port"
 keepGoing = False
-print "z_1 closed keepGoing"
+print "z_1: I just closed keepGoing"
 time.sleep(2) # let the threads clean themselves up TODO take this out--they should still work, I think...
 
