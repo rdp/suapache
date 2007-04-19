@@ -91,6 +91,8 @@ while keepGoing:
                    if pingLocation != -1:
                            print "got ping!\n"
                            toSend = toSend.replace(pingString, "") # todo could put in more verbose "does this work" style output here
+                           if not toSend:
+                               continue
 
                    #vverbose
                    #print "sending [%s] in from internet to my internal socket" % toSend
