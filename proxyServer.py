@@ -114,9 +114,10 @@ class miscreant( threading.Thread ):
                                     if receivedData:
                                       pingLocation = receivedData.find(pingString)
                                       if pingLocation != -1:
-                                           print "got ping!\n"
-                                           assert len(receivedData) == len(receivedData)
-                                           continue
+                                           print "got ping!"
+                                           receivedData = receivedData.replace(pingString, "")
+                                           if not receivedData: # todo test this :)
+                                                continue
                                             
                                       controlLocation = receivedData.find("control:close")
                                       if controlLocation != -1:
