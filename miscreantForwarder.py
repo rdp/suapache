@@ -7,7 +7,7 @@ pingString = "PINGPONG@@@@!!!!"
 
 # parameters -- vary these
 myUniqueMiscreantName = socket.gethostname()
-socketToSendToLocalHost = 3001 # this is the  
+socketToSendToLocalHost = 3200 # this is the  
 server = "planetlab1.byu.edu"
 socketToConnectToProxy = 8000 # todo do two of them -- a list ;) (?)
 
@@ -45,12 +45,12 @@ while keepGoing:
          if mySocketToSelf:
              toListenTo += [mySocketToSelf] 
          readMe, writeMe, errors = select.select(toListenTo, [], [], 5)
-         # ping every 15 s
-         print "time!"
-         if time.time() - lastPingTime > 15:
+         # ping every 30 s
+         if time.time() - lastPingTime > 30:
             mySocketToProxy.sendall(pingString)
-            print "sending " + pingString
-         # ha ha :)
+            lastPingTime = time.time()
+            # verbose
+            print "t_pong",
          if readMe:
              localConnectionToSelfAlive = True
              shouldSendOutBreak = False
@@ -59,7 +59,15 @@ while keepGoing:
                  if not mySocketToSelf:
                      mySocketToSelf = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
                      print "establishing new inward socket to my own %d" % socketToSendToLocalHost
-                     mySocketToSelf.connect(('localhost', socketToSendToLocalHost))
+                     try:
+                         mySocketToSelf.connect(('localhost', socketToSendToLocalHost))
+                     except socket.error, e:
+                       print "ack the local port seems broke!\n", e
+                       mySocketToProxy.sendall("The p2p host seems to not be running anything on port %d" % socketToSendToLocalHost)
+                       mySocketToProxy.sendall("control:close")
+                       trash = mySocketToProxy.recv(1000) # todo uh...hmm...
+                       continue
+                       
                  toSend = mySocketToProxy.recv(1000000) # todo bound
                  #vverbose
                  #print "got [%s] from proxy heading in" % toSend
@@ -87,6 +95,8 @@ while keepGoing:
                    #print "sending [%s] in from internet to my internal socket" % toSend
                    try:
                        mySocketToSelf.sendall(toSend)
+                       #verbose
+                       print " ?? << p ",
                    except socket.error, e:
                         print "local connection dropped us."
                         localConnectionToSelfAlive = False
@@ -108,6 +118,7 @@ while keepGoing:
 
                 if toSend:
     # verbose                print "O",
+                    print " ?? >> p ",
                     mySocketToProxy.sendall(toSend)
                 else:
                     # at this point this means that we read from the inside connection, it gave us nothing (had closed)
@@ -118,17 +129,18 @@ while keepGoing:
              else:
                 print "weird!"
 
-             if not localConnectionToSelfAlive and shouldSendOutBreak:
-                    print "telling proxy that socket here closed\n"
-                    mySocketToProxy.sendall("control:close")
+             if not localConnectionToSelfAlive:
+                    if shouldSendOutBreak:
+                       print "telling proxy that socket here closed\n"
+                       mySocketToProxy.sendall("control:close")
                     mySocketToSelf.close()
-                    mySocketToSelf = []
+                    mySocketToSelf = [] # todo do not use these!
 
             # verbose
-             print "Transfer_occurred",
+             print " Transfer_occurred ",
          else:
              #verbose
-             print "select_z", mySocketToProxy.getpeername()
+             print "select_z", 
              pass
 
  except KeyboardInterrupt:
