@@ -4,7 +4,7 @@ import sys
 import time
 
 pingString = "PINGPONG@@@@!!!!"
-
+# todo test case of a miscreant comes, leaves, lastCited is used.
 # parameters -- vary these
 myUniqueMiscreantName = socket.gethostname()
 socketToSendToLocalHost = 3200 # this is the  
@@ -37,7 +37,7 @@ while keepGoing:
     mySocketToSelf = [] #socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
     mySocketToProxy =  socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
     mySocketToProxy.connect((server, socketToConnectToProxy))
-    mySocketToProxy.sendall(myUniqueMiscreantName) # that's it -- as long as it comes in the first packet we're good TODO this is a kinda bad way, though...
+    mySocketToProxy.sendall("miscreant:version=%d,name=[%s]" % (52, myUniqueMiscreantName)) # that's it -- as long as it comes in the first packet we're good TODO this is a kinda bad way, though...
     print "success! connections may now be mapped through %s as %s and will end up going to port %d" % (server, myUniqueMiscreantName, socketToSendToLocalHost)
     lastPingTime = time.time()
     while True:
@@ -80,6 +80,8 @@ while keepGoing:
                        shouldSendOutBreak = False
                        print "got a close signal--cutting it off to sockettoself"
                        toSend = toSend[0:closeLocation] # don't send that on, though it will close. Oh trust me--it will close :)
+                       if not toSend:
+                        continue
 
                    openLocation = toSend.find("control:open")
                    if openLocation != -1:
@@ -88,8 +90,7 @@ while keepGoing:
                    pingLocation = toSend.find(pingString)
                    if pingLocation != -1:
                            print "got ping!\n"
-                           assert len(toSend) == len(pingString)
-                           toSend = ""
+                           toSend = toSend.replace(pingString, "") # todo could put in more verbose "does this work" style output here
 
                    #vverbose
                    #print "sending [%s] in from internet to my internal socket" % toSend
