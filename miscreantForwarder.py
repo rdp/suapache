@@ -11,9 +11,12 @@ socketToSendToLocalHost = 3200 # this is the
 server = "planetlab1.byu.edu"
 socketToConnectToProxy = 8000 # todo do two of them -- a list ;) (?)
 
-print "command line ref: localsocketin [8888], sockettoconnectforeign [8000], miscreantNameToBeKnownAs [%s], server [%s]\n" % (myUniqueMiscreantName, server)
+commandLineRef = "command line ref: localsocketin [8888], sockettoconnectforeign [8000], miscreantNameToBeKnownAs [%s], server [%s]\n" % (myUniqueMiscreantName, server)
+print commandLineRef
 
 if len(sys.argv) > 1:
+    if sys.argv[1] == "-h":
+        print "use those -- the next lin should fail prreventing the rest of the script from executing..."    
     socketToSendToLocalHost = int(sys.argv[1])
 
 if len(sys.argv) > 2:
