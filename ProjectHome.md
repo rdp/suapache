@@ -1,0 +1,1 @@
+Does port mapping to allow peers behind NAT's to still be contacted from outside peers.  When finished should allow (with reasonably accurate precision) any computer on the internet to become a web server, with a lookup of 'myname.suapache.info:3122.'
